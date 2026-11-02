@@ -2,6 +2,9 @@ const {test, after} = require('node:test');
 const assert = require('node:assert/strict');
 const usage = require('./netlify/lib/usage.cjs');
 const records = [], requests = [];
+const MAX_DOWNLOAD_BYTES = 4_456_448;
+const PRODUCTION_VIDEO_BYTES = 4_266_833;
+const MAX_SERIALIZED_RESPONSE_BYTES = 6_000_000;
 const originalTracker = usage.trackedFetch;
 const originalKeys = {GEMINI_API_KEY:process.env.GEMINI_API_KEY, GOOGLE_DEVELOPER_API_KEY:process.env.GOOGLE_DEVELOPER_API_KEY};
 let payload, responseStatus = 200, networkError;
@@ -121,7 +124,7 @@ test('download returns inline MP4, waits for pending and rejects malformed, over
   const response = await download(event());
   assert.equal(response.statusCode, 200); assert.equal(response.headers['Content-Type'], 'video/mp4');
   assert.equal(Buffer.from(response.body, 'base64').toString(), 'fake-mp4');
-  for (const video of [{data:'!!!'}, {data:Buffer.alloc(4 * 1024 * 1024 + 1).toString('base64')},
+  for (const video of [{data:'!!!'}, {data:Buffer.alloc(MAX_DOWNLOAD_BYTES + 1).toString('base64')},
     {uri:'https://evil.test/video.mp4'}, {uri:'http://generativelanguage.googleapis.com/v1beta/files/x:download'}]) {
     payload = completed(video); assert.equal((await download(event())).statusCode, 502);
   }
@@ -229,7 +232,7 @@ test('unknown-video fallback preserves MIME, size, URL and redirect restrictions
       : new Response(fileTypeBox(), {headers:{'Content-Type':mime}});
     assert.equal((await download(event())).statusCode, 502);
   }
-  const oversized = Buffer.alloc(4 * 1024 * 1024 + 1); fileTypeBox().copy(oversized);
+  const oversized = Buffer.alloc(MAX_DOWNLOAD_BYTES + 1); fileTypeBox().copy(oversized);
   payload = url => url.endsWith('/interactions/mock')
     ? Response.json(completed({uri:'files/mock:download'}))
     : new Response(oversized, {headers:{'Content-Type':'video/unknown'}});
@@ -243,6 +246,42 @@ test('unknown-video fallback preserves MIME, size, URL and redirect restrictions
     return new Response(null, {status:302, headers:{Location:'https://evil.test/video.mp4'}});
   };
   assert.equal((await download(event())).statusCode, 502);
+});
+test('production-sized and exact-cap downloads fit the complete serialized response budget', async () => {
+  reset();
+  for (const size of [PRODUCTION_VIDEO_BYTES, MAX_DOWNLOAD_BYTES]) {
+    const bytes = Buffer.alloc(size); fileTypeBox().copy(bytes);
+    for (const source of ['video/mp4', 'video/unknown']) {
+      payload = url => url.endsWith('/interactions/mock')
+        ? Response.json(completed({mime_type:undefined, uri:'files/mock:download'}))
+        : new Response(bytes, {headers:{'Content-Type':source}});
+      const response = await download(event());
+      assert.equal(response.statusCode, 200, `${source}: ${size} bytes`);
+      assert.equal(response.isBase64Encoded, true);
+      assert.equal(response.headers['Content-Type'], 'video/mp4');
+      assert.deepEqual(Buffer.from(response.body, 'base64'), bytes);
+      const serializedBytes = Buffer.byteLength(JSON.stringify(response), 'utf8');
+      assert.ok(serializedBytes < MAX_SERIALIZED_RESPONSE_BYTES,
+        `${source}: serialized response is ${serializedBytes} bytes`);
+      if (source === 'video/unknown') console.log(
+        `Download budget: binary=${size}, base64=${response.body.length}, serialized=${serializedBytes}`);
+    }
+  }
+  assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
+});
+test('cap-plus-one URI downloads are rejected for MP4 and validated unknown-video sources', async () => {
+  reset();
+  const bytes = Buffer.alloc(MAX_DOWNLOAD_BYTES + 1); fileTypeBox().copy(bytes);
+  for (const source of ['video/mp4', 'video/unknown']) {
+    payload = url => url.endsWith('/interactions/mock')
+      ? Response.json(completed({mime_type:undefined, uri:'files/mock:download'}))
+      : new Response(bytes, {headers:{'Content-Type':source}});
+    const response = await download(event());
+    assert.equal(response.statusCode, 502, source);
+    assert.equal(read(response).error,
+      'This video is too large to download through the video service. Please contact support.');
+  }
+  assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
 });
 test('the new environment-key alias is also redacted from historical Veo diagnostics', () => {
   reset(); process.env.GOOGLE_DEVELOPER_API_KEY = 'private-alias-key';
