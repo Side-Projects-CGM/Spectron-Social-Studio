@@ -22,6 +22,13 @@ const input = {image:'data:image/png;base64,YWJj', prompt:'Product showcase', as
 const post = body => ({httpMethod:'POST', body:JSON.stringify(body)});
 const read = response => JSON.parse(response.body);
 const completed = video => ({status:'completed', steps:[{type:'model_output', content:[{type:'video', mime_type:'video/mp4', ...video}]}]});
+function fileTypeBox(major = 'isom', compatible = ['mp42']) {
+  const bytes = Buffer.alloc(16 + compatible.length * 4);
+  bytes.writeUInt32BE(bytes.length, 0);
+  bytes.write('ftyp', 4); bytes.write(major, 8);
+  compatible.forEach((brand, index) => bytes.write(brand, 16 + index * 4));
+  return bytes;
+}
 function reset() {
   payload = {id:'mock', status:'in_progress'}; responseStatus = 200; networkError = null;
   requests.length = 0; records.length = 0;
@@ -91,8 +98,9 @@ test('status supports pending/completed/failed/cancelled, omits video data and d
   for (const state of ['in_progress', 'completed', 'failed', 'cancelled', 'incomplete', 'requires_action', 'bogus']) {
     payload = state === 'completed' ? completed({data:Buffer.from('fake-mp4').toString('base64')}) : {status:state};
     const response = await status(event());
-    assert.equal(response.statusCode, state === 'bogus' ? 502 : 200);
-    if (state !== 'bogus') assert.equal(read(response).state, state === 'in_progress' ? 'pending' : state === 'completed' ? 'completed' : 'failed');
+    assert.equal(response.statusCode, ['in_progress', 'completed', 'failed', 'cancelled'].includes(state) ? 200 : 502);
+    const expected = {in_progress:'pending', completed:'completed', failed:'failed', cancelled:'failed'};
+    assert.equal(read(response).state, expected[state] || 'unknown');
     assert.doesNotMatch(response.body, /steps|fake-mp4|ZmFrZS1tcDQ/);
   }
   payload = completed({data:Buffer.from('fake-mp4').toString('base64')});
@@ -134,6 +142,108 @@ test('URI download stays on Google, sends credentials only there and rejects red
     ? Response.json(completed({uri:'files/mock:download'})) : new Response('<html>not video</html>');
   assert.equal((await download(event())).statusCode, 502);
 });
+test('video URI without MIME metadata is extracted, reported available and downloaded safely', async () => {
+  reset();
+  const {interactionVideo} = require('./netlify/lib/video-response.cjs');
+  const video = {type:'video', uri:'files/mock:download?key=untrusted'};
+  const interaction = {status:'completed', steps:[{type:'model_output', content:[video]}]};
+  assert.equal(interactionVideo(interaction), video);
+  payload = url => url.endsWith('/interactions/mock') ? Response.json(interaction)
+    : new Response('fake-mp4', {headers:{'Content-Type':'video/mp4'}});
+  const result = read(await status(event()));
+  assert.equal(result.state, 'completed');
+  assert.equal(result.outputAvailable, true);
+  assert.doesNotMatch(JSON.stringify(result), /files\/mock|untrusted/);
+  const response = await download(event());
+  assert.equal(response.statusCode, 200);
+  assert.equal(Buffer.from(response.body, 'base64').toString(), 'fake-mp4');
+  assert.equal(requests.at(-1).url, 'https://generativelanguage.googleapis.com/v1beta/files/mock:download?alt=media');
+  assert.equal(requests.at(-1).options.redirect, 'error');
+  assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
+});
+test('missing MIME metadata does not bypass video type, output or download validation', async () => {
+  reset();
+  const {interactionVideo} = require('./netlify/lib/video-response.cjs');
+  for (const video of [{type:'image', uri:'files/mock:download'}, {type:'video'},
+    {type:'video', uri:'', data:''}, {type:'video', mime_type:'video/webm', uri:'files/mock:download'},
+    {type:'video', mime_type:'text/html', data:'YWJj'},
+    {type:'video', mime_type:'', uri:'files/mock:download'}]) {
+    const interaction = {status:'completed', steps:[{type:'model_output', content:[video]}]};
+    assert.equal(interactionVideo(interaction), undefined);
+    payload = interaction;
+    assert.equal(read(await status(event())).outputAvailable, false);
+    assert.equal((await download(event())).statusCode, 502);
+  }
+  payload = completed({mime_type:undefined, uri:'https://evil.test/video.mp4'});
+  assert.equal((await download(event())).statusCode, 502);
+  assert.equal(requests.filter(request => request.url.startsWith('https://evil.test')).length, 0);
+  payload = url => url.endsWith('/interactions/mock')
+    ? Response.json(completed({mime_type:undefined, uri:'files/mock:download'}))
+    : new Response('<html>not video</html>', {headers:{'Content-Type':'text/html'}});
+  assert.equal((await download(event())).statusCode, 502);
+});
+test('observed video/unknown response accepts bounded MP4 ftyp and serves video/mp4', async () => {
+  reset();
+  for (const bytes of [fileTypeBox(), fileTypeBox('zzzz', ['mp42']), fileTypeBox('mp42', [])]) {
+    payload = (url, options) => {
+      if (url.endsWith('/interactions/mock')) return Response.json(completed({mime_type:undefined, uri:'files/mock:download?alt=media'}));
+      assert.equal(url, 'https://generativelanguage.googleapis.com/v1beta/files/mock:download?alt=media');
+      assert.equal(options.headers['x-goog-api-key'], 'mock-key');
+      assert.equal(options.redirect, 'error');
+      return new Response(bytes, {headers:{'Content-Type':'video/unknown'}});
+    };
+    const response = await download(event());
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.headers['Content-Type'], 'video/mp4');
+    assert.deepEqual(Buffer.from(response.body, 'base64'), bytes);
+  }
+  assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
+});
+test('video/unknown rejects non-MP4 brands, malformed and unbounded ftyp boxes', async () => {
+  reset();
+  const wrongBox = fileTypeBox(); wrongBox.write('moov', 4);
+  const invalidSizes = [0, 1, 12, 19, 24, 0xffffffff].map(size => {
+    const bytes = fileTypeBox(); bytes.writeUInt32BE(size, 0); return bytes;
+  });
+  const excessiveBox = Buffer.alloc(4100); fileTypeBox().copy(excessiveBox);
+  excessiveBox.writeUInt32BE(excessiveBox.length, 0);
+  const minorVersionOnly = fileTypeBox('zzzz', []); minorVersionOnly.write('mp42', 12);
+  for (const bytes of [Buffer.alloc(0), Buffer.from('{"error":"private detail"}'),
+    Buffer.from('<html>not video</html>'), fileTypeBox().subarray(0, 15),
+    fileTypeBox('avif', ['mif1']), fileTypeBox('qt  ', []), minorVersionOnly,
+    wrongBox, excessiveBox, ...invalidSizes]) {
+    payload = url => url.endsWith('/interactions/mock')
+      ? Response.json(completed({mime_type:undefined, uri:'files/mock:download'}))
+      : new Response(bytes, {headers:{'Content-Type':'video/unknown'}});
+    const response = await download(event());
+    assert.equal(response.statusCode, 502);
+    assert.equal(read(response).error, 'Google returned an invalid video download.');
+    assert.doesNotMatch(response.body, /private detail|<html>/);
+  }
+});
+test('unknown-video fallback preserves MIME, size, URL and redirect restrictions', async () => {
+  reset();
+  for (const mime of ['application/json', 'text/html', 'application/octet-stream', 'video/webm', 'video/mp4-invalid']) {
+    payload = url => url.endsWith('/interactions/mock')
+      ? Response.json(completed({uri:'files/mock:download'}))
+      : new Response(fileTypeBox(), {headers:{'Content-Type':mime}});
+    assert.equal((await download(event())).statusCode, 502);
+  }
+  const oversized = Buffer.alloc(4 * 1024 * 1024 + 1); fileTypeBox().copy(oversized);
+  payload = url => url.endsWith('/interactions/mock')
+    ? Response.json(completed({uri:'files/mock:download'}))
+    : new Response(oversized, {headers:{'Content-Type':'video/unknown'}});
+  assert.match(read(await download(event())).error, /too large/);
+  payload = completed({uri:'https://evil.test/video.mp4'});
+  assert.equal((await download(event())).statusCode, 502);
+  assert.equal(requests.filter(request => request.url.startsWith('https://evil.test')).length, 0);
+  payload = (url, options) => {
+    if (url.endsWith('/interactions/mock')) return Response.json(completed({uri:'files/mock:download'}));
+    assert.equal(options.redirect, 'error');
+    return new Response(null, {status:302, headers:{Location:'https://evil.test/video.mp4'}});
+  };
+  assert.equal((await download(event())).statusCode, 502);
+});
 test('the new environment-key alias is also redacted from historical Veo diagnostics', () => {
   reset(); process.env.GOOGLE_DEVELOPER_API_KEY = 'private-alias-key';
   const {failureDetails} = require('./netlify/lib/veo-failure.cjs');
@@ -148,6 +258,39 @@ test('historical Veo operation status and downloads remain compatible', async ()
   const legacy = event('GET', 'operations/legacy');
   assert.equal(read(await status(legacy)).state, 'completed');
   assert.equal(Buffer.from((await download(legacy)).body, 'base64').toString(), 'legacy-mp4');
+});
+test('completed without supported video is not provider failure and does not invent output formats', async () => {
+  reset(); await start(post(input));
+  for (const output of [{status:'completed'}, {status:'completed', steps:[]},
+    {status:'completed', output_video:{uri:'files/mock:download'}},
+    {status:'completed', steps:[{type:'model_output', content:[{type:'video', mime_type:'video/webm', uri:'files/mock:download'}]}]}]) {
+    payload = output;
+    const response = await status(event());
+    assert.equal(response.statusCode, 200);
+    assert.equal(read(response).state, 'completed');
+    assert.equal(read(response).outputAvailable, false);
+    assert.equal(read(response).category, 'output-unavailable');
+    assert.match(read(response).message, /completed.*unavailable or unrecognised/);
+    assert.doesNotMatch(response.body, /could not generate|output_video|files\/mock/);
+    const video = await download(event());
+    assert.equal(video.statusCode, 502);
+    assert.equal(read(video).category, 'output-unavailable');
+    assert.equal(records.at(-1).operationState, 'completed');
+    assert.equal(records.at(-1).videoCount, 0);
+  }
+  const totals = usage.summarize(records).totals.veo;
+  assert.equal(totals.completed, 1); assert.equal(totals.videos, 0); assert.equal(totals.failed, 0);
+  assert.equal(requests.filter(request => request.options.method === 'POST').length, 1);
+});
+test('confirmed failure and unknown status diagnostics never expose provider details', async () => {
+  reset();
+  for (const state of ['failed', 'cancelled', 'incomplete', 'requires_action', 'bogus']) {
+    payload = {status:state, error:{message:'mock-key private prompt data:image/png;base64,YWJj'}};
+    const response = await status(event());
+    assert.equal(response.statusCode, ['failed', 'cancelled'].includes(state) ? 200 : 502);
+    assert.equal(read(response).state, ['failed', 'cancelled'].includes(state) ? 'failed' : 'unknown');
+    assert.doesNotMatch(response.body, /mock-key|private prompt|YWJj/);
+  }
 });
 test('status and downloads do not need a second paid generation', async () => {
   reset(); await start(post(input));

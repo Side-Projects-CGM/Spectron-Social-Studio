@@ -9,14 +9,16 @@ function interactionVideo(result) {
   const steps = Array.isArray(result?.steps) ? result.steps : [];
   return steps.filter(step => step?.type === 'model_output')
     .flatMap(step => Array.isArray(step.content) ? step.content : [])
-    .find(content => content?.type === 'video' && content.mime_type === 'video/mp4' && (content.data || content.uri));
+    .find(content => content?.type === 'video'
+      && (content.mime_type === undefined || content.mime_type === 'video/mp4')
+      && (content.data || content.uri));
 }
 
 /** @param {Interaction | null} result @returns {'pending'|'failed'|'completed'|'unknown'} */
 function interactionState(result) {
   if (result?.status === 'in_progress') return 'pending';
-  if (['failed', 'cancelled', 'incomplete', 'requires_action'].includes(result?.status)) return 'failed';
-  if (result?.status === 'completed') return interactionVideo(result) ? 'completed' : 'failed';
+  if (['failed', 'cancelled'].includes(result?.status)) return 'failed';
+  if (result?.status === 'completed') return 'completed';
   return 'unknown';
 }
 
