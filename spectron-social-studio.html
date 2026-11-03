@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -90,7 +90,7 @@
     font-weight:700;
     font-size:19px;
     letter-spacing:0.4px;
-    
+
     margin:0;
     line-height:1.15;
   }
@@ -152,7 +152,7 @@
     font-family:'Fraunces',serif;
     font-weight:700;
     font-size:17px;
-    
+
     letter-spacing:0.3px;
     margin-bottom:10px;
   }
@@ -227,7 +227,7 @@
     font-family:'Fraunces',serif;
     font-weight:700;
     font-size:17px;
-    
+
     letter-spacing:0.3px;
     margin-bottom:10px;
   }
@@ -377,7 +377,7 @@
     font-weight:700;
     font-size:19px;
     letter-spacing:0.6px;
-    
+
     padding:16px;
     cursor:pointer;
     display:flex;
@@ -410,7 +410,7 @@
     font-family:'Fraunces',serif;
     font-weight:700;
     font-size:22px;
-    
+
     margin:0;
   }
   .output-head span{
@@ -670,7 +670,7 @@
     font-size:26px;
     line-height:1;
     color:var(--paper);
-    
+
     max-width:80%;
     position:relative;
     z-index:2;
@@ -981,7 +981,7 @@
   .generate-btn{border-radius:0;background:var(--brand-dark-blue);}
   .masthead{border:0!important;box-shadow:none;}
   /* Spectron: uitsluitend vier huiskleuren, wit en rechte hoeken */
-  *,*::before,*::after{border-radius:0!important;}
+  .mock-social,.mock-social *,.mock-google,.mock-google *,.mock-linkedin,.mock-linkedin *,.saved-preview,.saved-preview *{border-radius:0!important;}
   body,.masthead,.panel,.card,.img-adjust,.loading,.empty,.mock-social,.mock-google,.mock-linkedin{background:var(--artwork-white);}
   .panel,.card,.img-adjust,.masthead,.img-thumb,select,input,.chip-opt{box-shadow:none!important;}
   .panel-head,.card-top{background:var(--brand-dark-blue)!important;color:var(--brand-white);}
@@ -1426,33 +1426,57 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 .error-box{background:var(--brand-white);border-color:var(--brand-error);color:var(--brand-error);}
 
 </style>
+<link rel="stylesheet" href="studio-design.css?v=20261102-light-grey-fields">
 </head>
 <body>
 <div class="wrap">
 
   <header class="masthead">
-    <div class="brandmark">
-      <div class="header-logos">
-        <img class="spectron-logo header-logo company-logo" src="spectron-logo.webp" width="253" height="155" alt="Spectron Toy Company" decoding="async">
-        <div class="divider" aria-hidden="true"></div>
-        <img class="spectron-logo header-logo social-studio-logo" src="social-logo.jpeg" width="770" height="356" alt="Social Studio" decoding="async">
-      </div>
+    <img class="client-brand-logo" src="toytous-logo-cutout.svg?v=rainbow" alt="ToyToyz" width="204" height="74">
+    <div class="app-identity">
+      <img class="social-studio-brand-logo" src="social-studio-logo-white.svg" alt="Social Studio" width="152" height="50">
     </div>
+      <details class="workspace-details" id="advancedAdjustments" open hidden>
+      <summary>Beeld en tekst aanpassen</summary>
+      <div class="img-adjust" id="imgAdjust" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <span style="font-family:'Nunito Sans',sans-serif; font-weight:900; font-size:14px; letter-spacing:.35px; text-transform:uppercase;">Beeld &amp; tekst aanpassen</span>
+          <button type="button" class="reset-btn" onclick="resetAllAdjust()">Reset alles</button>
+        </div>
+        <div class="adjustment-grid">
+          <div class="adj-row">
+            <label for="gradientDarkness">Gradient darkness <span id="gradientDarknessValue">25%</span></label>
+            <input type="range" id="gradientDarkness" min="0" max="60" step="5" value="25" aria-label="Gradient darkness" aria-valuemin="0" aria-valuemax="60" aria-valuenow="25" oninput="applyGradientDarkness()">
+          </div>
+          <div class="adj-row">
+            <label for="zoomSlider">Beeld zoom <span id="zoomVal">100%</span></label>
+            <input type="range" id="zoomSlider" min="100" max="220" value="100" oninput="onImageAdjust()">
+          </div>
+          <div class="adj-row">
+            <label for="posXSlider">Beeld horizontaal</label>
+            <input type="range" id="posXSlider" min="0" max="100" value="50" oninput="onImageAdjust('x')" onchange="onImageAdjust('x')">
+          </div>
+          <div class="adj-row">
+            <label for="posYSlider">Beeld verticaal</label>
+            <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="onImageAdjust('y')" onchange="onImageAdjust('y')">
+          </div>
+          <div class="adj-row">
+            <label for="textSlider">Tekstgrootte <span id="textVal">150%</span></label>
+            <input type="range" id="textSlider" min="70" max="220" value="150" oninput="onTextAdjust()">
+          </div>
+        </div>
+      </div>
+      </details>
   </header>
 
   <main class="grid studio-shell" id="studioShell">
     <aside class="panel workflow-panel" id="workflowPanel" aria-label="Social Studio workflow">
-      <div class="panel-head"><span id="workflowTitle">Kies format</span><span id="stepIndicator" hidden>0/3 INGEVULD</span><button type="button" id="workflowBack" class="workflow-back" onclick="showWorkflowChooser()" hidden aria-label="Terug naar Kies format">&#8592; Kies format</button></div>
-      <nav id="workflowChooser" class="workflow-chooser" aria-label="Kies een workflow">
-        <button type="button" class="workflow-choice" id="chooseAdvertisement" onclick="showStudioWorkflow('advertisement')">Maak een Social Advertentie</button>
-        <button type="button" class="workflow-choice" id="chooseVideo" onclick="showStudioWorkflow('video')">Maak een Social Video</button>
-      </nav>
-      <section id="brandImageStep" class="workflow-fields" hidden aria-label="STAP 01: Kies een merk">
+      <div class="panel-head"><span id="workflowTitle" class="visually-hidden">Kies je foto</span><span id="stepIndicator" class="visually-hidden" hidden>0/3 INGEVULD</span><button type="button" id="workflowBack" class="workflow-back" onclick="showWorkflowChooser()" hidden aria-label="Terug naar fotobewerking">&#8592; Kies format</button></div>
+      <section id="brandImageStep" class="workflow-fields" aria-label="STAP 01: Kies een merk">
       <div class="field">
-        <span class="field-num">STAP 01</span>
         <label class="title" for="brand">Kies een merk</label>
         <select id="brand">
-          <option value="">— kies eerst een merk —</option>
+          <option value="">Kies een merk</option>
           <option value="3Doodler">3Doodler</option><option value="MrBeast Lab">MrBeast Lab</option>
           <option value="BeepBoop">BeepBoop</option><option value="Bing">Bing</option><option value="Bluey">Bluey</option>
           <option value="Cookeez Makery">Cookeez Makery</option><option value="Exost">Exost</option>
@@ -1465,25 +1489,22 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
           <option value="Stitch">Stitch</option><option value="The Amazing Digital Circus">The Amazing Digital Circus</option>
           <option value="TOMY">TOMY</option><option value="YCOO">YCOO</option>
         </select>
-        <p class="hint">De gekozen merkstem wordt gebruikt voor alle content.</p>
       </div>
       <div class="img-field">
-        <label class="title" style="font-size:15px;">Merkbeelden</label>
+        <label class="title" style="font-size:15px;">Foto's</label>
         <div class="gallery-wrap">
           <button type="button" class="gallery-arrow prev" hidden onclick="scrollGallery(-1)" aria-label="Vorige beelden">&lsaquo;</button>
           <div class="img-gallery" id="imgGallery"></div>
           <button type="button" class="gallery-arrow next" hidden onclick="scrollGallery(1)" aria-label="Volgende beelden">&rsaquo;</button>
         </div>
         <label class="upload-btn">
-          <span class="icon" aria-hidden="true">&#8679;</span> Upload een eigen beeld
+          <span class="icon" aria-hidden="true">&#8679;</span> Upload foto
           <input type="file" id="uploadInput" accept="image/*">
         </label>
-        <p class="img-hint">Upload een merk- of productbeeld voor deze content.</p>
-        <button type="button" class="upload-btn" id="backgroundButton" onclick="openBackground()" hidden>AI Background</button>
+        <button type="button" class="upload-btn" id="backgroundButton" onclick="openBackground()" hidden>AI-achtergrond</button>
         <div id="backgroundPanel" hidden style="margin-top:12px;">
           <label for="backgroundDescription">Beschrijf de gewenste achtergrond</label>
           <input type="text" id="backgroundDescription" maxlength="1000" placeholder="Snowy landscape, Sunny beach, Modern office, Rainy city">
-          <p class="img-hint">Alleen de achtergrond wordt aangepast. Controleer het onderwerp in de preview.</p>
           <button type="button" class="upload-btn" id="backgroundGenerate" onclick="generateBackground()">Generate</button>
           <p id="backgroundStatus" role="status" aria-live="polite"></p>
           <p id="backgroundError" role="alert" style="color:var(--brand-error);"></p>
@@ -1496,13 +1517,17 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
       </div>
         <label class="upload-btn library-upload">
           <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M3 6.5h7l2 2h9v9.5A2 2 0 0 1 19 20H5a2 2 0 0 1-2-2V6.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
-          <span id="libraryUploadLabel">Fotobibliotheek van geselecteerd merk updaten</span>
+          <span id="libraryUploadLabel">Bibliotheek aanvullen</span>
           <input type="file" id="libraryUploadInput" accept="image/*" multiple>
         </label>
       </section>
+      <nav id="workflowChooser" class="workflow-chooser" aria-label="Kies wat je met je foto wilt maken">
+        <button type="button" disabled class="workflow-choice" id="chooseAdvertisement" onclick="showStudioWorkflow('advertisement')"><span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg></span><span class="choice-text">Social ad maken</span></button>
+        <button type="button" disabled class="workflow-choice" id="chooseVideo" onclick="showStudioWorkflow('video')"><span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="4"/><path d="m10 9 5 3-5 3V9Z"/></svg></span><span class="choice-text">Video maken</span></button>
+
+      </nav>
       <section id="advertisementFields" class="workflow-fields" hidden aria-label="Social Advertentie instellingen">
       <div class="field">
-        <span class="field-num">STAP 02</span>
         <label class="title">Platform &amp; toon</label>
         <select id="platform" style="margin-bottom:10px;">
           <option value="Instagram / Facebook post">Instagram / Facebook — feedpost</option>
@@ -1520,7 +1545,6 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
       </div>
 
       <div class="field usp-field">
-        <span class="field-num">STAP 03</span>
         <label class="title">USP's om te benadrukken</label>
         <div class="chips" id="uspChips">
           <label class="chip-opt"><input type="checkbox" value="Veilig getest volgens EN71 keurmerk"> Veilig getest (EN71)</label>
@@ -1534,7 +1558,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 
       <div class="field">
         <label class="title" style="font-size:15px;">Actie / aanleiding <span style="color:var(--steel);font-weight:500;">(optioneel)</span></label>
-        <input type="text" id="promo" placeholder="bijv. Nieuwe collectie live, -20% deze week">
+        <input type="text" id="promo" placeholder="Omschrijf thema of actie" aria-label="Omschrijf thema of actie">
       </div>
       <div class="field workflow-hidden-controls" hidden>
         <label class="title" for="outputType">Output type</label>
@@ -1570,7 +1594,11 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
       </section>
     </aside>
     <section class="workspace-canvas" id="workspaceCanvas" aria-label="Social Studio canvas">
-      <div class="workspace-placeholder" id="workspacePlaceholder" aria-hidden="true"><span>[canvas]</span></div>
+      <div class="workspace-placeholder" id="workspacePlaceholder">
+        <div class="empty-studio-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg></div>
+        <h1>Kies een foto</h1>
+
+      </div>
       <div class="workspace-image-preview" id="workspaceImagePreview" hidden><img id="workspaceProductImage" alt="Geselecteerd productbeeld"></div>
     <div class="output" id="workspaceOutput" hidden>
       <div class="output-head">
@@ -1580,39 +1608,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
           <button id="downloadAllBtn" class="dl-all-btn" onclick="downloadAllVariants()" style="display:none;">&#8595; Download alles (.txt)</button>
         </div>
       </div>
-      <p style="font-size:12px;color:var(--steel);margin:-8px 0 16px;">Klik in een kop, body of CTA hieronder om direct te bewerken — downloads gebruiken automatisch je aanpassingen.</p>
 
-      <details class="workspace-details" id="advancedAdjustments" hidden>
-      <summary>Geavanceerde beeld- en tekstinstellingen</summary>
-      <div class="img-adjust" id="imgAdjust" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <span style="font-family:'Nunito Sans',sans-serif; font-weight:900; font-size:14px; letter-spacing:.35px; text-transform:uppercase;">Beeld &amp; tekst aanpassen</span>
-          <button type="button" class="reset-btn" onclick="resetAllAdjust()">Reset alles</button>
-        </div>
-        <div class="adjustment-grid">
-          <div class="adj-row">
-            <label for="gradientDarkness">Gradient darkness <span id="gradientDarknessValue">25%</span></label>
-            <input type="range" id="gradientDarkness" min="0" max="60" step="5" value="25" aria-label="Gradient darkness" aria-valuemin="0" aria-valuemax="60" aria-valuenow="25" oninput="applyGradientDarkness()">
-          </div>
-          <div class="adj-row">
-            <label for="zoomSlider">Beeld — zoom <span id="zoomVal">100%</span></label>
-            <input type="range" id="zoomSlider" min="100" max="220" value="100" oninput="onImageAdjust()">
-          </div>
-          <div class="adj-row">
-            <label for="posXSlider">Beeld — horizontaal</label>
-            <input type="range" id="posXSlider" min="0" max="100" value="50" oninput="onImageAdjust('x')" onchange="onImageAdjust('x')">
-          </div>
-          <div class="adj-row">
-            <label for="posYSlider">Beeld — verticaal</label>
-            <input type="range" id="posYSlider" min="0" max="100" value="50" oninput="onImageAdjust('y')" onchange="onImageAdjust('y')">
-          </div>
-          <div class="adj-row">
-            <label for="textSlider">Tekstgrootte <span id="textVal">150%</span></label>
-            <input type="range" id="textSlider" min="70" max="220" value="150" oninput="onTextAdjust()">
-          </div>
-        </div>
-      </div>
-      </details>
 
       <div id="studioStatus" role="status" aria-live="polite"></div>
       <div id="resultsArea"></div>
@@ -1625,12 +1621,10 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
       <div class="card-dl-row library-actions"><button class="card-dl-btn" onclick="document.getElementById('duplicateDialog').close()">Annuleren</button>
       <button class="card-dl-btn" id="confirmDuplicate" onclick="confirmDuplicate()" disabled>Maak batch</button></div></dialog>
     </div>
-      <footer class="footer-note">
-        <span>SPECTRON TOYS &copy; 2026 — SOCIAL STUDIO</span>
-        <span>Tekst wordt per keer gegenereerd, controleer altijd op merk- en feitelijke juistheid vóór publicatie.</span>
-      </footer>
     </section>
   </main>
+  <footer class="social-platform-footer" aria-label="Social media platforms"><span class="social-platform-mark" role="img" aria-label="Facebook" style="--sprite-x:-14.566px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="X" style="--sprite-x:-53.076px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="Instagram" style="--sprite-x:-91.586px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="YouTube" style="--sprite-x:-130.097px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="Dribbble" style="--sprite-x:-14.566px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Pinterest" style="--sprite-x:-53.076px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="LinkedIn" style="--sprite-x:-91.586px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Snapchat" style="--sprite-x:-130.097px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Twitch" style="--sprite-x:-14.566px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="TikTok" style="--sprite-x:-53.076px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="WhatsApp" style="--sprite-x:-91.586px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="Reddit" style="--sprite-x:-130.097px;--sprite-y:-117.628px"></span></footer>
+  <div class="studio-copyright">All rights reserved OomAgent 2026</div>
 
 </div>
 
@@ -1678,7 +1672,20 @@ function restoreStudioWorkflowView(workflow){
   if(advanced){advanced.hidden=workflow!=='advertisement'||(state?.advancedHidden??true);advanced.open=workflow==='advertisement'&&!!state?.advancedOpen;}
   if(savedLibrary)savedLibrary.hidden=workflow!=='advertisement';
 }
+function syncContentModeAvailability(){
+  const ready=!!selectedImage;
+  const hasAds=activeStudioWorkflow==='advertisement'&&!!document.querySelector('#resultsArea .card');
+  const adjustmentPanel=document.getElementById('advancedAdjustments');
+  if(adjustmentPanel){adjustmentPanel.hidden=!hasAds;adjustmentPanel.open=true;}
+  const adjustmentControls=document.getElementById('imgAdjust');
+  if(adjustmentControls)adjustmentControls.style.display=hasAds?'block':'none';
+  ['chooseAdvertisement','chooseVideo'].forEach(id=>{document.getElementById(id).disabled=!ready;});
+  document.querySelectorAll('.app-mode[data-mode]').forEach(button=>{button.disabled=!ready;});
+  const hint=document.getElementById('contentModeHint');
+  if(hint)hint.textContent=ready?'Je foto staat klaar. Kies je volgende stap.':'Kies eerst een foto hierboven.';
+}
 function showStudioWorkflow(workflow){
+  if(!selectedImage){syncContentModeAvailability();document.getElementById('brand')?.focus?.();return false;}
   if(!['advertisement','video'].includes(workflow)) return false;
   if(activeStudioWorkflow===workflow) return true;
   if(adGenerationInProgress){studioNotice('Wacht tot de huidige generatie is voltooid voordat je van workflow wisselt.');return false;}
@@ -1700,22 +1707,29 @@ function showStudioWorkflow(workflow){
   if(workflow==='video'&&typeof syncAIVideoImage==='function')syncAIVideoImage();
   document.getElementById(workflow==='video'?'chooseVideo':'chooseAdvertisement').setAttribute('aria-pressed','true');
   document.getElementById(workflow==='video'?'chooseAdvertisement':'chooseVideo').setAttribute('aria-pressed','false');
+  if(workflow==='advertisement'&&typeof requestAnimationFrame==='function'){
+    requestAnimationFrame(()=>{
+      const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('generateBtn')?.scrollIntoView({behavior:reducedMotion?'instant':'smooth',block:'end',inline:'nearest'});
+    });
+  }
   return true;
 }
 function showWorkflowChooser(){
   if(adGenerationInProgress){studioNotice('Wacht tot de huidige generatie is voltooid voordat je teruggaat naar Kies format.');return false;}
   saveStudioWorkflowView(activeStudioWorkflow);
   activeStudioWorkflow=null;
-  document.getElementById('workflowTitle').textContent='Kies format';
+  document.getElementById('workflowTitle').textContent='Kies je foto';
   document.getElementById('workflowChooser').hidden=false;
   document.getElementById('workflowBack').hidden=true;
-  document.getElementById('brandImageStep').hidden=true;
+  document.getElementById('brandImageStep').hidden=false;
   document.getElementById('advertisementFields').hidden=true;
   document.getElementById('videoFields').hidden=true;
   document.getElementById('stepIndicator').hidden=true;
   document.getElementById('workspaceOutput').hidden=true;
   document.getElementById('workspacePlaceholder').hidden=false;
-  if(typeof hideWorkspaceImagePreview === 'function') hideWorkspaceImagePreview();
+  if(typeof syncWorkspaceImagePreview === 'function') syncWorkspaceImagePreview(true);
+  syncContentModeAvailability();
   document.getElementById('outputType').value='image';
   if(typeof updateVideoMode==='function')updateVideoMode();
   document.getElementById('chooseAdvertisement').setAttribute('aria-pressed','false');
@@ -2147,7 +2161,6 @@ function onImageAdjust(axis){
       if(room < 1 && position !== 50){
         imgScale = 1.2;
         document.getElementById('zoomSlider').value = 120;
-        studioNotice('Zoom aangepast naar 120% om het beeld te kunnen verschuiven.');
       }
     }
   }
@@ -2159,13 +2172,21 @@ function onImageAdjust(axis){
 }
 
 function applyImageTransform(idx = selectedVariantIndex){
-  const {imgScale, imgPosX, imgPosY} = variantVisuals[idx];
-  const translateX = (50 - imgPosX) * (imgScale - 1);
-  const translateY = (50 - imgPosY) * (imgScale - 1);
+  const visual = variantVisuals[idx] || {imgScale, imgPosX, imgPosY};
+  const {imgScale: scale, imgPosX: positionX, imgPosY: positionY} = visual;
+  const translateX = (50 - positionX) * (scale - 1);
+  const translateY = (50 - positionY) * (scale - 1);
+  const preview=document.getElementById('workspaceImagePreview');
+  const previewImage=document.getElementById('workspaceProductImage');
+  if(preview && preview.hidden===false && previewImage){
+    previewImage.style.animation='none';
+    previewImage.style.transform=`translate(${translateX}%, ${translateY}%) scale(${scale})`;
+    previewImage.style.transformOrigin=`${positionX}% ${positionY}%`;
+  }
   document.querySelectorAll(`.card[data-variant-index="${idx}"] .product-img`).forEach(img => {
-    img.style.transform = `translate(${translateX}%, ${translateY}%) scale(${imgScale})`;
+    img.style.transform = `translate(${translateX}%, ${translateY}%) scale(${scale})`;
     img.style.transformOrigin = `center center`;
-    img.style.objectPosition = `${imgPosX}% ${imgPosY}%`;
+    img.style.objectPosition = `${positionX}% ${positionY}%`;
   });
 }
 
@@ -2242,11 +2263,11 @@ function revealWorkspaceProductImage(){
 function syncWorkspaceImagePreview(restoring = false){
   const changed = workspacePreviewSource !== selectedImage;
   workspacePreviewSource = selectedImage;
-  if(!activeStudioWorkflow) return;
+  if(typeof syncContentModeAvailability === 'function') syncContentModeAvailability();
   const preview = document.getElementById('workspaceImagePreview');
   const output = document.getElementById('workspaceOutput');
   const placeholder = document.getElementById('workspacePlaceholder');
-  const state = studioWorkflowViewState[activeStudioWorkflow];
+  const state = activeStudioWorkflow ? studioWorkflowViewState[activeStudioWorkflow] : null;
   if(restoring && state?.image === selectedImage && !state.preview && document.getElementById('resultsArea').firstChild){
     hideWorkspaceImagePreview();
     output.hidden = false;
@@ -2803,8 +2824,8 @@ document.getElementById('brand').addEventListener('change', ()=>{
   renderImageGallery();
   const brand = document.getElementById('brand').value;
   document.getElementById('libraryUploadLabel').textContent = brand
-    ? `Fotobibliotheek van ${brand} updaten`
-    : 'Fotobibliotheek van geselecteerd merk updaten';
+    ? `Bibliotheek aanvullen`
+    : 'Bibliotheek aanvullen';
 });
 function reformatCurrentAds(){
   if(adGenerationInProgress) return;
@@ -2844,6 +2865,46 @@ showWorkflowChooser();
     </div>
   </div>
 </div>
+<script>
+// Keep each percentage aligned with its slider thumb, including restored values.
+(()=>{
+  const panel=document.getElementById('imgAdjust');
+  const sliders=[...panel.querySelectorAll('input[type="range"]')];
+  const outputs=sliders.map(slider=>{
+    const output=document.createElement('output');
+    output.className='slider-thumb-value';output.htmlFor=slider.id;
+    slider.parentElement.appendChild(output);return output;
+  });
+  function update(){sliders.forEach((slider,i)=>{
+    const fraction=(Number(slider.value)-Number(slider.min))/(Number(slider.max)-Number(slider.min));
+    const left=slider.offsetLeft+9+fraction*(slider.clientWidth-18);
+    const value=slider.value+'%';
+    if(outputs[i].textContent!==value)outputs[i].textContent=value;
+    outputs[i].style.left=left+'px';
+  });}
+  sliders.forEach(slider=>slider.addEventListener('input',update));
+  new MutationObserver(update).observe(panel,{subtree:true,childList:true,characterData:true});
+  new ResizeObserver(update).observe(panel);
+  update();
+})();
+</script>
+<script>
+(()=>{
+  const select=document.getElementById('platform');
+  const wrapper=document.createElement('div');wrapper.className='platform-select-wrap';
+  select.before(wrapper);wrapper.append(select);
+  const icon=document.createElement('span');icon.className='platform-select-icon';icon.setAttribute('aria-hidden','true');wrapper.append(icon);
+  function update(){
+    const text=select.options[select.selectedIndex].text;
+    const index=text.includes('TikTok')?9:text.includes('Google')?-1:2;
+    icon.hidden=index<0;
+    icon.classList.toggle('instagram-only',index===2);
+    if(index>=0){icon.style.backgroundPosition=`${-[132,481,830,1179][index%4]/290*22}px ${-[244,655,1066][Math.floor(index/4)]/290*22}px`;}
+  }
+  select.addEventListener('change',update);update();
+})();
+</script>
+
 </body>
 </html>
 

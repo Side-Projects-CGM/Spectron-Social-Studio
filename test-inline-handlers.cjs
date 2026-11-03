@@ -5,19 +5,19 @@ const page = fs.readFileSync('spectron-social-studio.html', 'utf8');
 const elements = new Map();
 function element(id) {
   if (!elements.has(id)) elements.set(id, {
-    value:'', style:{}, dataset:{}, options:[], children:[], hidden:true,
+    value:'', style:{}, dataset:{}, options:[{text:'Instagram'}], selectedIndex:0, children:[], hidden:true,
     classList:{add(){}, remove(){}, toggle(){}},
     addEventListener(){}, setAttribute(){}, removeAttribute(){}, pause(){}, load(){}, querySelectorAll(){return [];},
-    replaceChildren(){}, append(){}, closest(){return null;}
+    before(){}, replaceChildren(){}, append(){}, closest(){return null;}
   });
   return elements.get(id);
 }
 const context = vm.createContext({
   console, setTimeout, clearTimeout, URL, Blob, structuredClone,
-  ResizeObserver:class {observe(){}},
+  ResizeObserver:class {observe(){}}, MutationObserver:class {observe(){}},
   requestAnimationFrame(){}, Image:class {},
   indexedDB:{open(){return {}; }}, localStorage:{getItem(){return null;}},
-  document:{getElementById:element, addEventListener(){}, querySelectorAll(){return [];},
+  document:{createElement(){return element(Symbol());}, getElementById:element, addEventListener(){}, querySelectorAll(){return [];},
     querySelector(){return null;}, createDocumentFragment(){return {append(){}};}}
 });
 context.window = context;
@@ -40,6 +40,8 @@ for (const source of [page, ...sources]) {
   }
 }
 for (const name of handlerNames) assert.equal(typeof context[name], 'function', `Missing inline onclick function: ${name}`);
+assert.equal(context.showStudioWorkflow('advertisement'), false, 'photo is required first');
+vm.runInContext("selectedImage = 'data:image/png;base64,TEST'",context);
 assert.equal(context.showStudioWorkflow('advertisement'), true);
 assert.equal(element('advertisementFields').hidden, false);
 assert.equal(context.showWorkflowChooser(), true);
