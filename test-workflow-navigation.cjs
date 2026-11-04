@@ -21,7 +21,7 @@ assert.match(page, /id="posXSlider"/);
 assert.match(page, /id="posYSlider"/);
 assert.match(page, /id="textSlider"/);
 assert.match(page, /id="generateBtn"[^>]*onclick="generateAds\(\)"/);
-assert.match(page, /id="generateAIVideoBtn"[^>]*onclick="generateAIVideo\(\)"/);
+assert.match(page, /id="generateAIVideoBtn"[^>]*onclick="generateAIVideo\(true\)"/);
 function fragment(){ return {nodes:[], append(node){if(node?.nodes){for(const child of node.nodes){child.parentElement=null;}this.nodes.push(...node.nodes);node.nodes.length=0;}else{if(node?.parentElement){const parent=node.parentElement;parent.children.shift();node.parentElement=null;}this.nodes.push(node);}}}; }
 function element(id){return {id,hidden:true,value:'',textContent:'',style:{display:'none'},attrs:{},children:[],open:false,get firstChild(){return this.children[0]||null;},append(node){if(node?.nodes){for(const child of node.nodes){child.parentElement=this;}this.children.push(...node.nodes);node.nodes.length=0;}else{node.parentElement=this;this.children.push(node);}},replaceChildren(){for(const child of this.children)child.parentElement=null;this.children=[];},setAttribute(k,v){this.attrs[k]=v;}};}
 const ids=['resultsArea','outputMeta','downloadAllBtn','imgAdjust','advancedAdjustments','savedLibrary','workflowTitle','workflowChooser','workflowBack','brandImageStep','advertisementFields','videoFields','stepIndicator','workspacePlaceholder','workspaceOutput','outputType','workspaceHeading','chooseVideo','chooseAdvertisement','aiVideoAspect'];

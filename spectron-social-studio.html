@@ -1589,7 +1589,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
             <label for="aiVideoAspect" class="visually-hidden">Beeldverhouding</label>
             <select id="aiVideoAspect" class="visually-hidden" aria-hidden="true" tabindex="-1"><option value="9:16" selected>Staand 9:16</option><option value="16:9">Liggend 16:9</option></select>
             <p id="aiVideoSquareHint" class="hint" hidden>Google AI-video maakt geen vierkante video. Kies 16:9 of 9:16.</p>
-            <button type="button" class="generate-btn" id="generateAIVideoBtn" onclick="generateAIVideo()">Genereer mijn video</button>
+            <button type="button" class="generate-btn" id="generateAIVideoBtn" onclick="generateAIVideo(true)">Genereer mijn video</button>
             <p id="aiVideoNoImage" class="hint" role="alert" hidden>Selecteer eerst een merkbeeld.</p>
           </div>
         </div>
@@ -2580,7 +2580,7 @@ async function generateAds(){
     return;
   }
 
-  if(document.getElementById('outputType')?.value === 'ai-video') return generateAIVideo();
+  if(document.getElementById('outputType')?.value === 'ai-video') return generateAIVideo(true);
   if(typeof cleanupAnimatedVideo === 'function') cleanupAnimatedVideo();
   setAdGenerationState(true);
 

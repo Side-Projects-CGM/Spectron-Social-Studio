@@ -51,6 +51,56 @@ function recover(state) {
   state.context.restoreAIVideoRecovery();
 }
 const starts = state => state.calls.filter(call => call.method === 'POST').length;
+const page = fs.readFileSync('spectron-social-studio.html', 'utf8');
+const generateClick = page.match(/id="generateAIVideoBtn" onclick="([^"]+)"/)[1];
+
+test('main Generate uses the newly selected photo; cancelling preserves the old request', async () => {
+  const state = browser();
+  const submittedImages = [];
+  state.context.normalizeAIVideoImage = async () => ({mimeType:'image/png', data:Buffer.from(state.context.selectedImage).toString('base64')});
+  state.respond = (url, options) => {
+    if (options?.method === 'POST') {
+      submittedImages.push(JSON.parse(options.body).image);
+      return json({operation:`interactions/mock-photo-${submittedImages.length}`});
+    }
+    return json({state:'completed', outputAvailable:false});
+  };
+  for (const photo of ['photo-A', 'photo-B']) {
+    state.context.selectedImage = photo;
+    const previous = state.storage.get(KEY);
+    if (photo === 'photo-B') {
+      const cancelled = vm.runInContext(generateClick, state.context);
+      assert.equal(state.elements.aiVideoConfirmModal.hidden, false, 'A new photo must not silently resume the old operation');
+      state.elements.aiVideoCancelButton.onclick();
+      await cancelled;
+      assert.equal(starts(state), 1);
+      assert.equal(state.storage.get(KEY), previous, 'Cancel keeps the previous request recoverable');
+    }
+    const beforeConfirmation = starts(state);
+    const generating = vm.runInContext(generateClick, state.context);
+    assert.equal(state.elements.aiVideoConfirmModal.hidden, false);
+    assert.equal(starts(state), beforeConfirmation, 'No request before confirmation');
+    state.elements.aiVideoConfirmButton.onclick();
+    await generating;
+    const operation = JSON.parse(state.storage.get(KEY)).operation;
+    await state.context.pollAIVideo(operation);
+  }
+  assert.deepEqual(submittedImages, ['photo-A','photo-B'].map(photo => `data:image/png;base64,${Buffer.from(photo).toString('base64')}`));
+  const before = starts(state);
+  await state.context.resumeAIVideo();
+  assert.equal(starts(state), before, 'Explicit recovery still only reads the existing request');
+  assert.match(state.calls.at(-1).url, /mock-photo-2/);
+});
+
+test('main Generate requires a photo even when an old request is available', async () => {
+  const state = browser(); recover(state);
+  state.context.selectedImage = null;
+  await vm.runInContext(generateClick, state.context);
+  assert.equal(state.elements.aiVideoNoImage.hidden, false);
+  assert.equal(state.calls.length, 0);
+  assert.equal(state.elements.aiVideoConfirmModal.hidden, true);
+  assert.equal(JSON.parse(state.storage.get(KEY)).operation, OPERATION);
+});
 
 test('accepted ID is stored with orientation only; submission/polling block duplicate starts', async () => {
   const state = browser();
