@@ -314,12 +314,12 @@ body:not(:has(#chooseAdvertisement[aria-pressed="true"])) .adj-row:has(#gradient
 .masthead .adj-row{margin:0;}
 .masthead .adj-row label{font:650 12px var(--ui-font);color:#fff;}
 .masthead .adj-row label span{color:#e0e0ff;}
-.masthead .adj-row input[type=range]{width:100%;margin-top:10px;accent-color:#fff;}
+.masthead .adj-row input[type=range]{--studio-slider-thumb-size:14px;display:block;width:84%;min-width:90px;max-width:100%;margin:4px auto 0;accent-color:#fff;flex:none;}
 .masthead .adj-row input[type=range]{appearance:none;-webkit-appearance:none;height:20px;background:transparent;}
 .masthead .adj-row input[type=range]::-webkit-slider-runnable-track{height:6px;background:#dcdde5;border:0;border-radius:999px;}
-.masthead .adj-row input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;background:#fff;border:0;border-radius:50%;}
+.masthead .adj-row input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:var(--studio-slider-thumb-size);height:var(--studio-slider-thumb-size);margin-top:-6px;background:#fff;border:0;border-radius:50%;}
 .masthead .adj-row input[type=range]::-moz-range-track{height:6px;background:#dcdde5;border:0;border-radius:999px;}
-.masthead .adj-row input[type=range]::-moz-range-thumb{width:18px;height:18px;background:#fff;border:0;border-radius:50%;}
+.masthead .adj-row input[type=range]::-moz-range-thumb{box-sizing:border-box;width:var(--studio-slider-thumb-size);height:var(--studio-slider-thumb-size);background:#0000ff;border:2px solid #fff;border-radius:50%;}
 .workflow-panel .img-thumb.selected{outline:4px solid #fff!important;outline-offset:-4px;}
 .workflow-panel .img-thumb.selected::after{display:none!important;content:none;}
 body:has(#chooseAdvertisement[aria-pressed="true"]) .masthead .adjustment-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;}
@@ -576,11 +576,14 @@ body{background:#d8d3cc!important;}
 
 /* Fine blue slider tracks. */
 .masthead .adj-row input[type=range]::-webkit-slider-runnable-track{height:2px;background:#0000ff;border:0;border-radius:999px;}
-.masthead .adj-row input[type=range]::-webkit-slider-thumb{margin-top:-8px;}
+.masthead .adj-row input[type=range]::-webkit-slider-thumb{margin-top:calc((2px - var(--studio-slider-thumb-size))/2);}
 .masthead .adj-row input[type=range]::-moz-range-track{height:2px;background:#0000ff;border:0;border-radius:999px;}
 
+/* Smaller handles retain a comfortable touch target on phones and tablets. */
+@media(pointer:coarse){.masthead .adj-row input[type=range]{height:44px;}}
+
 /* Percentages follow the centre of each slider thumb. */
-.masthead .adj-row{position:relative;padding-bottom:22px;}
+.masthead .adj-row{position:relative;display:flex;flex-direction:column;padding-bottom:22px;}
 .masthead .adj-row label span{display:none!important;}
 .masthead .slider-thumb-value{position:absolute;bottom:0;transform:translateX(-50%);color:#0000ff;font:600 11px/1.3 var(--ui-font);white-space:nowrap;pointer-events:none;}
 
@@ -592,7 +595,7 @@ body{background:#d8d3cc!important;}
 .workflow-panel #advertisementFields,.workflow-panel #advertisementFields .workflow-primary-action{background:transparent!important;}
 
 /* Centred slider headings. */
-.masthead .adj-row>label{display:block!important;width:100%;text-align:center!important;}
+.masthead .adj-row>label{display:block!important;flex:1;width:100%;text-align:center!important;}
 
 /* Compact USP button height. */
 .workflow-panel #uspChips .chip-opt{height:36px!important;min-height:36px!important;padding:4px 8px!important;}

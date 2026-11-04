@@ -101,6 +101,9 @@ async function refreshSavedAds(){
     req.onerror = () => reject(req.error);
   });
   const grid = document.getElementById('savedAds');
+  if(typeof canvasResizeObserver !== 'undefined'){
+    grid.querySelectorAll('.saved-preview').forEach(preview => canvasResizeObserver.unobserve(preview));
+  }
   grid.replaceChildren();
   document.getElementById('savedCount').textContent = savedAds.length;
   for(const ad of savedAds){
@@ -122,6 +125,7 @@ async function refreshSavedAds(){
     }
     const shade = document.createElement('div'); shade.className = 'saved-shade'; preview.append(shade);
     const headline = document.createElement('strong'); headline.textContent = ad.variant.headline;
+    headline.setAttribute('data-headline-size', String(18 * ad.visual.textScale));
     headline.style.fontSize = `${18 * ad.visual.textScale}px`;
     if(h/w > 1.5){ preview.classList.add('saved-vertical'); }
     preview.append(headline);
@@ -131,6 +135,8 @@ async function refreshSavedAds(){
     button.onclick = () => openSavedAd(ad.id);
     const actions = document.createElement('div'); actions.className = 'library-actions'; actions.append(button);
     item.append(title,preview,body,cta,actions); grid.append(item);
+    if(typeof fitSavedPreviewText === 'function') fitSavedPreviewText(preview);
+    if(typeof canvasResizeObserver !== 'undefined') canvasResizeObserver.observe(preview);
   }
 }
 function openSavedAd(id){

@@ -1102,7 +1102,7 @@
 .saved-preview{position:relative;overflow:hidden;background:var(--artwork-ink);display:flex;align-items:flex-end;padding:7%;}
 .saved-preview>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
 .saved-shade{position:absolute;inset:0;background:linear-gradient(to bottom, transparent 25%, var(--artwork-scrim-mid) 50%, var(--artwork-scrim-deep) 80%, var(--artwork-scrim-end) 100%);}
-.saved-preview strong{position:relative;color:var(--artwork-white);line-height:1.04;overflow-wrap:anywhere;font-weight:900;}
+.saved-preview strong{position:relative;color:var(--artwork-white);line-height:1.04;overflow-wrap:normal;word-break:normal;hyphens:none;width:100%;min-width:0;font-weight:900;}
 .saved-vertical{padding-bottom:39%;padding-right:18%;}
 .save-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px;align-items:flex-start;}
 .save-actions .card-dl-btn{background:var(--brand-dark-blue);border-color:var(--brand-dark-blue);color:var(--brand-white);}
@@ -1112,7 +1112,7 @@
 button:disabled{opacity:.5;cursor:not-allowed;}
 .mock-social .canvas{width:100%;min-height:0;padding:0;}
 .mock-social .canvas.vertical-canvas{padding:0;}
-.mock-social .canvas .headline-on-image{position:absolute;left:7%;right:7%;bottom:7%;overflow-wrap:anywhere;max-width:100%;}
+.mock-social .canvas .headline-on-image{position:absolute;left:7%;right:7%;bottom:7%;overflow-wrap:normal;word-break:normal;hyphens:none;max-width:100%;}
 .mock-social .canvas.vertical-canvas .headline-on-image{right:18%;bottom:22%;}
 .mock-social .caption{font-size:15px;line-height:1.5;}
 .img-field .background-actions{display:flex;flex-direction:column;gap:12px;background:transparent;width:100%;margin-top:12px;}
@@ -1426,7 +1426,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 .error-box{background:var(--brand-white);border-color:var(--brand-error);color:var(--brand-error);}
 
 </style>
-<link rel="stylesheet" href="studio-design.css?v=dutch-grey-logo-1">
+<link rel="stylesheet" href="studio-design.css?v=compact-sliders-2">
 </head>
 <body>
 <div class="wrap">
@@ -2143,9 +2143,13 @@ const canvasResizeObserver = new ResizeObserver(entries => {
   entries.forEach(({target}) => {
     const card = target.closest('.card');
     if(card) applyTextScale(Number(card.dataset.variantIndex));
+    else if(target.classList.contains('saved-preview')) fitSavedPreviewText(target);
   });
 });
-document.fonts?.ready.then(() => variantVisuals.forEach((_, idx) => applyTextScale(idx)));
+document.fonts?.ready.then(() => {
+  variantVisuals.forEach((_, idx) => applyTextScale(idx));
+  document.querySelectorAll('.saved-preview').forEach(fitSavedPreviewText);
+});
 
 function onImageAdjust(axis){
   imgScale = document.getElementById('zoomSlider').value / 100;
@@ -2210,11 +2214,28 @@ function applyTextScale(idx = selectedVariantIndex){
       el.style.fontSize = requestedSize + 'px';
       if(el.classList.contains('headline-on-image')){
         const maxHeight = canvas.clientHeight * (canvas.classList.contains('vertical-canvas') ? .45 : .65);
-        let size = requestedSize;
-        while(el.offsetHeight > maxHeight && size > 10){ el.style.fontSize = (--size) + 'px'; }
+        fitHeadlineText(el, requestedSize, maxHeight);
       }
     });
   });
+}
+
+// Keep complete Dutch words together; reduce type size instead of breaking letters.
+function fitHeadlineText(el, requestedSize, maxHeight){
+  el.style.fontSize = requestedSize + 'px';
+  if(!el.clientWidth) return; // Hidden saved previews are fitted when revealed.
+  let size = requestedSize;
+  while((el.offsetHeight > maxHeight || el.scrollWidth > el.clientWidth + 1) && size > 10){
+    size = Math.max(10, size - 1);
+    el.style.fontSize = size + 'px';
+  }
+}
+function fitSavedPreviewText(preview){
+  const headline = preview.querySelector('strong');
+  if(!headline) return;
+  const requestedSize = Number(headline.getAttribute('data-headline-size')) || 18;
+  const maxHeight = preview.clientHeight * (preview.classList.contains('saved-vertical') ? .45 : .65);
+  fitHeadlineText(headline, requestedSize, maxHeight);
 }
 
 function resetImageAdjust(){
@@ -2770,7 +2791,7 @@ function renderResults(variants, platform, product, isOffline, target=null){
   applyImageTransform();
   variantVisuals.forEach((_, idx) => { applyImageTransform(idx); applyTextScale(idx); });
   applyGradientDarkness();
-  document.querySelectorAll('.mock-social .canvas').forEach(canvas => canvasResizeObserver.observe(canvas));
+  document.querySelectorAll('.mock-social .canvas, .saved-preview').forEach(canvas => canvasResizeObserver.observe(canvas));
   document.getElementById('downloadAllBtn').style.display = variants.length ? 'inline-block' : 'none';
 }
 
@@ -2853,7 +2874,7 @@ showWorkflowChooser();
 <script src="animated-video.js?v=dutch-copy-1"></script>
 <script src="ai-video.js?v=dutch-copy-5"></script>
 <script src="ai-background.js?v=dutch-copy-4"></script>
-<script src="studio-library.js"></script>
+<script src="studio-library.js?v=dutch-word-wrap-1"></script>
 
 <div id="aiVideoConfirmModal" class="ai-video-modal" hidden role="dialog" aria-modal="true" aria-labelledby="aiVideoConfirmTitle">
   <div class="ai-video-modal-card" role="document">
@@ -2879,7 +2900,9 @@ showWorkflowChooser();
   });
   function update(){sliders.forEach((slider,i)=>{
     const fraction=(Number(slider.value)-Number(slider.min))/(Number(slider.max)-Number(slider.min));
-    const left=slider.offsetLeft+9+fraction*(slider.clientWidth-18);
+    const thumbSize=parseFloat(getComputedStyle(slider).getPropertyValue('--studio-slider-thumb-size'))||14;
+    const radius=thumbSize/2;
+    const left=slider.offsetLeft+radius+fraction*(slider.clientWidth-thumbSize);
     const value=slider.value+'%';
     if(outputs[i].textContent!==value)outputs[i].textContent=value;
     outputs[i].style.left=left+'px';
