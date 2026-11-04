@@ -60,12 +60,41 @@ async function readOperation(event, feature) {
 }
 /** @param {Interaction | null} result */
 function failedGeneration(result) {
-  // Never expose provider diagnostics, which can contain prompts or credentials.
-  const filtered = /safety|blocked|policy|filter/i.test(JSON.stringify(result?.error || {}));
-  return {state:'failed', category:filtered ? 'content-filter' : 'generation-failed',
-    message:filtered ? "Google's content filter blocked this video. Try a different image or prompt."
-      : result?.status === 'cancelled' ? 'The Google video request was cancelled.'
-      : 'Google could not generate this video. Try a different image or prompt.'};
+  // Inspect documented errors[] as well as legacy error; never echo provider text.
+  const errors = [...(Array.isArray(result?.errors) ? result.errors : []), result?.error];
+  const diagnostics = errors.flatMap(error => typeof error === 'string' ? [error]
+    : [error?.code, error?.message]).filter(value => typeof value === 'string').join(' ');
+  const outputText = (Array.isArray(result?.steps) ? result.steps : [])
+    .filter(step => step?.type === 'model_output')
+    .flatMap(step => Array.isArray(step.content) ? step.content : [])
+    .filter(content => content?.type === 'text' && typeof content.text === 'string')
+    .map(content => content.text).join(' ');
+  let category = 'generation-failed';
+  let message = 'Google could not generate this video. Try a different image or prompt.';
+  if (/safety|blocked|policy|filter|guardrails|third[- ]party content/i.test(diagnostics + ' ' + outputText)) {
+    category = 'content-filter';
+    message = "Google's content filter blocked this video. Try a different product photo or prompt without third-party artwork.";
+  } else if (/quota|resource[_ -]?exhausted|rate[_ -]?limit/i.test(diagnostics)) {
+    category = 'quota';
+    message = 'Google usage limit reached. Please try again later.';
+  } else if (/permission|access[_ -]?denied|forbidden/i.test(diagnostics)) {
+    category = 'permission';
+    message = 'The video service does not have permission to use Google video generation. Please contact support.';
+  } else if (/unauthenticated|authentication|unauthorized/i.test(diagnostics)) {
+    category = 'authentication';
+    message = 'The video service could not authenticate with Google. Please contact support.';
+  } else if (result?.status === 'cancelled') {
+    category = 'cancelled';
+    message = 'The Google video request was cancelled.';
+  } else if (['incomplete', 'requires_action', 'requires_continuation'].includes(result?.status)) {
+    category = 'incomplete';
+    message = result.status === 'incomplete' ? 'Google returned an incomplete video generation.'
+      : 'Google requested additional input or continuation instead of a finished video. Please contact support.';
+  } else if (result?.status === 'completed') {
+    category = 'missing-video';
+    message = 'Google finished the request without a downloadable MP4 video. Try a different image or prompt, or contact support.';
+  }
+  return {state:'failed', category, message};
 }
 /** @param {VideoEvent} event @param {string} feature */
 async function status(event, feature) {

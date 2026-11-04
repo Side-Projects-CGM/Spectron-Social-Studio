@@ -525,11 +525,9 @@ body{background:#d8d3cc!important;}
 /* Flat canvas preview without drop shadows. */
 .workspace-canvas,.workspace-image-preview,.workspace-image-preview img{box-shadow:none!important;filter:none!important;}
 
-/* More saturated rainbow brand colours. */
-.masthead .client-brand-logo{filter:saturate(1.85) contrast(1.08);}
-
-/* Subtle depth beneath the rainbow logo. */
-.masthead .client-brand-logo{filter:saturate(1.85) contrast(1.08) drop-shadow(2px 3px 0 #000000b3);}
+/* Keep the supplied EPS colours; the picture wrapper preserves the header flex layout. */
+.masthead .client-brand-picture{display:contents;}
+.masthead .client-brand-logo{filter:none;image-rendering:auto;}
 
 /* Video controls follow the warm, minimal studio design. */
 .workflow-panel #aiVideoOptions{background:transparent!important;padding:0!important;border:0!important;box-shadow:none!important;}
@@ -613,3 +611,76 @@ body{background:#d8d3cc!important;}
 
 /* Very light neutral grey for the advertisement selectors. */
 .workflow-panel #platform,.workflow-panel #format,.workflow-panel #tone{background:#f0f0f0!important;}
+
+/* Responsive application layout; generated advertisement artwork is unchanged. */
+.masthead{
+  min-height:96px!important;padding:12px 24px!important;gap:20px;
+  flex-wrap:wrap;
+}
+.masthead .client-brand-logo{width:clamp(140px,22vw,300px);height:72px;}
+.masthead .app-identity{flex:0 0 auto;min-width:0;}
+.masthead .social-studio-brand-logo{width:128px;height:72px;padding:0;}
+.masthead #advancedAdjustments{min-width:0;margin:0;}
+.masthead #imgAdjust{padding:8px 0;}
+.masthead .adj-row{min-width:0;}
+.masthead .adj-row label{white-space:normal;line-height:1.4;}
+.studio-shell,.workflow-panel,.workspace-canvas,.workflow-fields{min-width:0;}
+.workspace-image-preview{inset:24px!important;}
+.workspace-image-preview img{max-width:100%;max-height:100%;}
+.output-head,.card-dl-row{flex-wrap:wrap;}
+.card-dl-btn,.dl-all-btn{white-space:normal;}
+.social-platform-footer,.studio-copyright{flex-shrink:0;}
+
+@media(min-width:901px){
+  .wrap{grid-template-rows:auto minmax(0,1fr) auto auto;}
+  .studio-shell{grid-template-columns:340px minmax(0,1fr)!important;}
+  .workspace-canvas{min-height:0!important;}
+}
+@media(min-width:1400px){
+  .studio-shell{grid-template-columns:400px minmax(0,1fr)!important;}
+}
+@media(max-width:1200px){
+  .masthead #advancedAdjustments{order:3;flex:1 0 100%;max-width:none;margin:0;}
+}
+@media(max-width:900px){
+  html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;}
+  .wrap{display:flex!important;flex-direction:column;width:100%;height:auto;min-height:100dvh;overflow:visible;}
+  .masthead{flex:none;min-height:88px!important;padding:12px 16px!important;gap:12px;}
+  .masthead .client-brand-logo{width:45%;max-width:260px;height:64px;}
+  .masthead .social-studio-brand-logo{width:96px;height:64px;}
+  .studio-shell{display:grid;grid-template-columns:minmax(0,1fr)!important;height:auto;overflow:visible;}
+  .studio-shell>.workflow-panel,.studio-shell>.workspace-canvas{grid-column:1;grid-row:auto;}
+  .workflow-panel{
+    position:static!important;top:auto!important;width:100%;height:auto;max-height:none;
+    overflow:visible;border-right:0!important;border-bottom:1px solid #fff!important;
+  }
+  .workspace-canvas{height:auto;min-height:440px!important;overflow:visible;overscroll-behavior:auto;}
+  .workflow-panel .workflow-chooser{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea,
+  .workflow-panel #aiVideoPrompt{font-size:16px!important;}
+  .workflow-panel .gallery-arrow{width:44px;height:44px;}
+  .workflow-panel #uspChips .chip-opt{height:auto!important;min-height:44px!important;}
+  .output#workspaceOutput{padding:16px!important;min-height:0!important;}
+  .workspace-image-preview{inset:16px!important;}
+  body:has(#chooseAdvertisement[aria-pressed="true"]) .masthead .adjustment-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+  }
+}
+@media(max-width:480px){
+  .masthead .client-brand-logo{height:56px;}
+  .masthead .social-studio-brand-logo{width:88px;height:56px;}
+  .workflow-panel .workflow-chooser{grid-template-columns:minmax(0,1fr);}
+  body:has(#chooseAdvertisement[aria-pressed="true"]) .masthead .adjustment-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,
+  .workflow-panel .workflow-primary-action{padding-left:16px!important;padding-right:16px!important;}
+  .workflow-panel .library-upload{width:calc(100% - 32px)!important;margin-left:16px!important;margin-right:16px!important;}
+  .workflow-panel .workflow-chooser{padding-left:16px!important;padding-right:16px!important;}
+  .workspace-canvas{min-height:360px!important;}
+}
+@media(min-width:901px) and (max-height:600px){
+  html,body{height:auto;overflow-y:auto;}
+  .wrap{height:auto;min-height:100dvh;overflow:visible;}
+  .studio-shell{height:560px;}
+}

@@ -50,7 +50,7 @@ test('production status, logs and usage preserve failure reasons with mocked net
   }
 });
 
-test('page displays the status reason, retains the paid retry warning and does not regenerate', async()=>{
+test('page displays the confirmed failure reason without an uncertain retry warning or regeneration', async()=>{
   const elements={resultsArea:{},outputMeta:{},generateAIVideoBtn:{setAttribute(){}}};let calls=0;
   const ctx=vm.createContext({window:{addEventListener(){}},document:{getElementById:id=>elements[id]},
     setAdGenerationState(){},escapeHtml:s=>s,clearTimeout(){},Date,console,
@@ -59,7 +59,7 @@ test('page displays the status reason, retains the paid retry warning and does n
   vm.runInContext('aiVideoRunning=true;aiVideoPollStarted=Date.now()',ctx);
   await ctx.pollAIVideo('operations/mock');
   assert.match(elements.resultsArea.innerHTML,/image of an adult/);
-  assert.match(elements.resultsArea.innerHTML,/Starting again may create another paid video/);
+  assert.doesNotMatch(elements.resultsArea.innerHTML,/Starting again may create another paid video/);
   assert.equal(calls,1);
 });
 
@@ -83,8 +83,8 @@ test('third-party guardrails produce a content-filter message and no one-click r
     await ctx.pollAIVideo('operations/mock');
     assert.match(elements.resultsArea.innerHTML,/content filter/);
     assert.doesNotMatch(elements.resultsArea.innerHTML,/<button|generateAIVideo|Google safety checks or Veo generation failed/);
-    assert.match(elements.resultsArea.innerHTML,/Starting again may create another paid video/);
+    assert.doesNotMatch(elements.resultsArea.innerHTML,/Starting again may create another paid video/);
     assert.equal(calls,1);
   }
-  assert.match(fs.readFileSync('spectron-social-studio.html','utf8'),/ai-video\.js\?v=portrait-preview-3/);
+  assert.match(fs.readFileSync('spectron-social-studio.html','utf8'),/ai-video\.js\?v=video-failure-details-4/);
 });

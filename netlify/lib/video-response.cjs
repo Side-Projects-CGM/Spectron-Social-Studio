@@ -1,5 +1,5 @@
-/** @typedef {{type:string, mime_type?:string, data?:string, uri?:string}} VideoContent */
-/** @typedef {{status?:string, error?:unknown, steps?:Array<{type:string, content?:VideoContent[]}>}} Interaction */
+/** @typedef {{type:string, mime_type?:string, data?:string, uri?:string, text?:string}} VideoContent */
+/** @typedef {{status?:string, error?:unknown, errors?:Array<{code?:string, message?:string}>, steps?:Array<{type:string, content?:VideoContent[]}>}} Interaction */
 
 const INTERACTION_PATTERN = /^interactions\/[A-Za-z0-9_-]{1,2048}$/;
 const INTERACTION_ID_PATTERN = /^[A-Za-z0-9_-]{1,2048}$/;
@@ -15,7 +15,7 @@ function interactionVideo(result) {
 /** @param {Interaction | null} result @returns {'pending'|'failed'|'completed'|'unknown'} */
 function interactionState(result) {
   if (result?.status === 'in_progress') return 'pending';
-  if (['failed', 'cancelled', 'incomplete', 'requires_action'].includes(result?.status)) return 'failed';
+  if (['failed', 'cancelled', 'incomplete', 'requires_action', 'requires_continuation'].includes(result?.status)) return 'failed';
   if (result?.status === 'completed') return interactionVideo(result) ? 'completed' : 'failed';
   return 'unknown';
 }

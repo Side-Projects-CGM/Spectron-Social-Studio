@@ -243,6 +243,15 @@ Quota errors return HTTP 429 and **Google usage limit reached**. Provider error
 bodies are not exposed or logged by the new video path. Confirmation is still
 required before every paid start; polling and downloading never start another job.
 
+Video failures inspect the Interactions API's `errors[]` array (and legacy
+`error`) and return fixed, safe messages for quota, permission, authentication,
+content filtering, incomplete output and a completed request with no MP4.
+Provider error text, model text and credentials are not echoed to the browser.
+A confirmed failed operation no longer shows the misleading "may already have
+started" warning; unknown/network failures still warn before another paid start.
+No failure automatically retries generation. Run `node --test test-video-errors.cjs`
+for mocked regression checks; these never call Google or start a paid video.
+
 Background execution requires Google-side interaction storage (`store: true`).
 Google's retention rules apply to uploaded media, prompts and generated output;
 this is separate from Spectron's metadata-only usage store. See the current
