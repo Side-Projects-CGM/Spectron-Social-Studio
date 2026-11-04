@@ -6,7 +6,10 @@ const { trackedFetch } = require('./usage.cjs');
 const { INTERACTION_PATTERN, interactionVideo, interactionState } = require('./video-response.cjs');
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const REQUEST_TIMEOUT_MS = 20000;
-const MAX_DOWNLOAD_BYTES = 4 * 1024 * 1024;
+const MAX_DOWNLOAD_BYTES = 4.25 * 1024 * 1024;
+const MAX_FTYP_BYTES = 4096;
+const MIN_FTYP_BYTES = 16;
+const MP4_BRANDS = new Set(['isom', 'iso2', 'iso3', 'iso4', 'iso5', 'iso6', 'mp41', 'mp42', 'avc1']);
 const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 function apiKey() {
@@ -105,10 +108,16 @@ async function status(event, feature) {
     if (failure) return failure;
     const state = interactionState(data);
     const operation = event.queryStringParameters.operation;
-    if (state === 'unknown') return reply(502, {error:'Google returned an invalid video status.'});
+    if (state === 'unknown') return reply(502, {state, operation, category:'monitoring-interrupted',
+      error:'The video status could not be determined. Check this existing request again; no new video has been started.'});
     if (state === 'failed') return reply(200, {...failedGeneration(data), operation});
-    return reply(200, {state, operation, ...(state === 'completed' ? {videoReference:operation} : {})});
+    if (state === 'completed' && !interactionVideo(data)) return reply(200, {state, operation,
+      outputAvailable:false, category:'output-unavailable', message:unavailableOutputMessage()});
+    return reply(200, {state, operation, ...(state === 'completed' ? {outputAvailable:true, videoReference:operation} : {})});
   } catch (error) { return networkFailure(error); }
+}
+function unavailableOutputMessage() {
+  return 'Google reports this request completed, but its video output is unavailable or unrecognised. Check the existing request again or contact support.';
 }
 function oversizedVideo() {
   return reply(502, {error:'This video is too large to download through the video service. Please contact support.'});
@@ -120,6 +129,17 @@ function videoReply(bytes) {
   return {statusCode:200, isBase64Encoded:true, headers:{'Content-Type':'video/mp4',
     'Content-Disposition':'attachment; filename="spectron-ai-video.mp4"', 'Cache-Control':'no-store'},
     body:bytes.toString('base64')};
+}
+/** Validate the first normal-size ftyp box, not the video's decodability. @param {Buffer} bytes */
+function hasMP4FileType(bytes) {
+  if (bytes.length < MIN_FTYP_BYTES || bytes.toString('latin1', 4, 8) !== 'ftyp') return false;
+  const size = bytes.readUInt32BE(0);
+  if (size < MIN_FTYP_BYTES || size > MAX_FTYP_BYTES || size > bytes.length || size % 4 !== 0) return false;
+  if (MP4_BRANDS.has(bytes.toString('latin1', 8, 12))) return true;
+  for (let offset = MIN_FTYP_BYTES; offset < size; offset += 4) {
+    if (MP4_BRANDS.has(bytes.toString('latin1', offset, offset + 4))) return true;
+  }
+  return false;
 }
 /** @param {string} uri @returns {string | null} */
 function downloadUrl(uri) {
@@ -144,10 +164,16 @@ async function downloadVideo(event, feature, video) {
     headers:headers(), redirect:'error', signal:AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   });
   if (!response.ok) return googleFailure(response.status);
-  if (!(response.headers.get('Content-Type') || '').toLowerCase().startsWith('video/mp4')) {
+  const mime = (response.headers.get('Content-Type') || '').split(';')[0].trim().toLowerCase();
+  if (mime !== 'video/mp4' && mime !== 'video/unknown') {
     return reply(502, {error:'Google returned an invalid video download.'});
   }
-  return videoReply(Buffer.from(await response.arrayBuffer()));
+  const bytes = Buffer.from(await response.arrayBuffer());
+  if (bytes.length > MAX_DOWNLOAD_BYTES) return oversizedVideo();
+  if (mime === 'video/unknown' && !hasMP4FileType(bytes)) {
+    return reply(502, {error:'Google returned an invalid video download.'});
+  }
+  return videoReply(bytes);
 }
 /** @param {VideoEvent} event @param {string} feature */
 async function download(event, feature) {
@@ -160,7 +186,9 @@ async function download(event, feature) {
     if (state === 'pending') return reply(409, {error:'The video is not ready yet.'});
     if (state === 'failed') return reply(422, {error:failedGeneration(data).message});
     if (state !== 'completed') return reply(502, {error:'Google returned an invalid video status.'});
-    return await downloadVideo(event, feature, interactionVideo(data));
+    const video = interactionVideo(data);
+    if (!video) return reply(502, {error:unavailableOutputMessage(), category:'output-unavailable'});
+    return await downloadVideo(event, feature, video);
   } catch (error) { return networkFailure(error); }
 }
 

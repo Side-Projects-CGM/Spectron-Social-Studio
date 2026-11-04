@@ -39,26 +39,32 @@ for (const [code, category, message] of [
   assert.match(JSON.parse(download.body).error, message);
 });
 
-test('completed text refusal is identified without exposing the model response', async () => {
+test('completed text-only output stays recoverable without exposing the model response', async () => {
   payload = {status:'completed', steps:[{type:'model_output', content:[
     {type:'text', text:'I cannot generate this due to third-party content guardrails. private prompt'}
   ]}]};
   const result = JSON.parse((await service.status(event, 'ai-video')).body);
-  assert.equal(result.category, 'content-filter');
+  assert.equal(result.state, 'completed');
+  assert.equal(result.outputAvailable, false);
+  assert.equal(result.category, 'output-unavailable');
   assert.doesNotMatch(result.message, /private prompt/);
 });
 
-test('missing video and incomplete/continuation responses have distinct explanations', async () => {
-  for (const [status, category, expected] of [
-    ['completed', 'missing-video', /without a downloadable MP4/],
-    ['incomplete', 'incomplete', /incomplete/],
-    ['requires_continuation', 'incomplete', /additional input or continuation/]
-  ]) {
+test('missing output and incomplete/continuation states never invent provider failure', async () => {
+  for (const status of ['completed', 'incomplete', 'requires_action', 'requires_continuation']) {
     payload = {status};
-    const result = JSON.parse((await service.status(event, 'ai-video')).body);
-    assert.equal(result.state, 'failed');
-    assert.equal(result.category, category);
-    assert.match(result.message, expected);
+    const response = await service.status(event, 'ai-video');
+    const result = JSON.parse(response.body);
+    if (status === 'completed') {
+      assert.equal(response.statusCode, 200);
+      assert.equal(result.state, 'completed');
+      assert.equal(result.outputAvailable, false);
+      assert.equal(result.category, 'output-unavailable');
+    } else {
+      assert.equal(response.statusCode, 502);
+      assert.equal(result.state, 'unknown');
+      assert.equal(result.category, 'monitoring-interrupted');
+    }
   }
 });
 
@@ -94,7 +100,8 @@ test('network/status failure retains the uncertain paid-request warning', async 
 test('content-filter failure offers no one-click retry', async () => {
   const {ctx, elements} = frontend(Response.json({state:'failed', category:'content-filter', message:'Google content filter blocked this video.'}));
   await ctx.pollAIVideo('interactions/mock');
-  assert.doesNotMatch(elements.resultsArea.innerHTML, /<button|may already have started/);
+  assert.doesNotMatch(elements.resultsArea.innerHTML, />Retry<|onclick="generateAIVideo\(\)"|may already have started/);
+  assert.match(elements.resultsArea.innerHTML, /New paid video \(confirmation required\)/);
 });
 
 test('all backend tests only perform mocked reads, never start generation', () => {

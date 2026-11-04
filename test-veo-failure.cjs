@@ -82,7 +82,8 @@ test('third-party guardrails produce a content-filter message and no one-click r
     vm.runInContext('aiVideoRunning=true;aiVideoPollStarted=Date.now()',ctx);
     await ctx.pollAIVideo('operations/mock');
     assert.match(elements.resultsArea.innerHTML,/content filter/);
-    assert.doesNotMatch(elements.resultsArea.innerHTML,/<button|generateAIVideo|Google safety checks or Veo generation failed/);
+    assert.doesNotMatch(elements.resultsArea.innerHTML,/>Retry<|onclick="generateAIVideo\(\)"|Google safety checks or Veo generation failed/);
+    assert.match(elements.resultsArea.innerHTML,/New paid video \(confirmation required\)/);
     assert.doesNotMatch(elements.resultsArea.innerHTML,/Starting again may create another paid video/);
     assert.equal(calls,1);
   }
