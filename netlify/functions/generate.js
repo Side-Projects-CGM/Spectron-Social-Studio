@@ -4,7 +4,7 @@ exports.handler = async function handler(event) {
     return {
       statusCode: 405,
       headers: { Allow: "POST" },
-      body: JSON.stringify({ error: "Method not allowed" })
+      body: JSON.stringify({ error: "Methode niet toegestaan" })
     };
   }
 

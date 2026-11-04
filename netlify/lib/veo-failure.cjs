@@ -1,4 +1,4 @@
-const FALLBACK = 'Google reported that the video request failed.';
+const FALLBACK = 'Google heeft gemeld dat de videoaanvraag is mislukt.';
 
 // Diagnostics retain the provider's reason, but never credentials.
 function redact(value) {
@@ -29,8 +29,10 @@ function failureDetails(result) {
     .map(text => text.trim()).filter(Boolean).join(' ').slice(0, 600);
   const safety = /safety|blocked|unsafe|policy|filtered/i.test(messages.join(' ')) || generated.raiMediaFilteredCount > 0;
   const contentFiltered = (generated.raiMediaFilteredCount ?? response.raiMediaFilteredCount ?? 0) > 0 || (Array.isArray(reasons) ? reasons.length > 0 : Boolean(reasons)) || /guardrails|third[- ]party content|content filter/i.test(messages.join(' '));
-  const message = contentFiltered ? "This image or prompt was blocked by Google's content filter (for example, other brands' logos or licensed characters). Try a different product photo without third-party artwork." : safe ? `${safety ? 'Google safety checks blocked this video request.' : FALLBACK} ${safe}`
-    : safety ? 'Google safety checks blocked this video request.' : FALLBACK;
+  const hint = /too small|resolution|dimensions/i.test(safe) ? 'Gebruik een grotere afbeelding met voldoende resolutie.'
+    : /\b(?:child|children|minor|adult)\b/i.test(safe) ? 'Gebruik een andere productfoto zonder minderjarigen.' : '';
+  const message = contentFiltered ? "Deze afbeelding of beschrijving is geblokkeerd door het inhoudsfilter van Google, bijvoorbeeld vanwege merklogo’s of beschermde personages. Probeer een andere productfoto zonder beeldmateriaal van derden." : safe ? `${safety ? 'De veiligheidscontrole van Google heeft deze videoaanvraag geblokkeerd.' : FALLBACK} ${hint}`.trim()
+    : safety ? 'De veiligheidscontrole van Google heeft deze videoaanvraag geblokkeerd.' : FALLBACK;
   return {reason, message, category:contentFiltered ? 'content-filter' : 'generation-failed'};
 }
 

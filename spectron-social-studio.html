@@ -1426,15 +1426,14 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 .error-box{background:var(--brand-white);border-color:var(--brand-error);color:var(--brand-error);}
 
 </style>
-<link rel="stylesheet" href="studio-design.css?v=cees-eps-branding">
+<link rel="stylesheet" href="studio-design.css?v=dutch-grey-logo-1">
 </head>
 <body>
 <div class="wrap">
 
   <header class="masthead">
     <picture class="client-brand-picture">
-      <source srcset="assets/branding/toytous.svg" type="image/svg+xml">
-      <img class="client-brand-logo" src="assets/branding/toytous.png" alt="ToyToy" width="2400" height="512">
+      <img class="client-brand-logo" src="assets/branding/cees-logo.jpeg" alt="ToyToyz" width="1600" height="341">
     </picture>
     <div class="app-identity">
       <img class="social-studio-brand-logo" src="social-studio-logo-white.svg" alt="Social Studio" width="152" height="50">
@@ -1444,15 +1443,15 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
       <div class="img-adjust" id="imgAdjust" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <span style="font-family:'Nunito Sans',sans-serif; font-weight:900; font-size:14px; letter-spacing:.35px; text-transform:uppercase;">Beeld &amp; tekst aanpassen</span>
-          <button type="button" class="reset-btn" onclick="resetAllAdjust()">Reset alles</button>
+          <button type="button" class="reset-btn" onclick="resetAllAdjust()">Alles herstellen</button>
         </div>
         <div class="adjustment-grid">
           <div class="adj-row">
-            <label for="gradientDarkness">Gradient darkness <span id="gradientDarknessValue">25%</span></label>
-            <input type="range" id="gradientDarkness" min="0" max="60" step="5" value="25" aria-label="Gradient darkness" aria-valuemin="0" aria-valuemax="60" aria-valuenow="25" oninput="applyGradientDarkness()">
+            <label for="gradientDarkness">Donkerte van kleurverloop <span id="gradientDarknessValue">25%</span></label>
+            <input type="range" id="gradientDarkness" min="0" max="60" step="5" value="25" aria-label="Donkerte van kleurverloop" aria-valuemin="0" aria-valuemax="60" aria-valuenow="25" oninput="applyGradientDarkness()">
           </div>
           <div class="adj-row">
-            <label for="zoomSlider">Beeld zoom <span id="zoomVal">100%</span></label>
+            <label for="zoomSlider">Beeld vergroten <span id="zoomVal">100%</span></label>
             <input type="range" id="zoomSlider" min="100" max="220" value="100" oninput="onImageAdjust()">
           </div>
           <div class="adj-row">
@@ -1473,8 +1472,8 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
   </header>
 
   <main class="grid studio-shell" id="studioShell">
-    <aside class="panel workflow-panel" id="workflowPanel" aria-label="Social Studio workflow">
-      <div class="panel-head"><span id="workflowTitle" class="visually-hidden">Kies je foto</span><span id="stepIndicator" class="visually-hidden" hidden>0/3 INGEVULD</span><button type="button" id="workflowBack" class="workflow-back" onclick="showWorkflowChooser()" hidden aria-label="Terug naar fotobewerking">&#8592; Kies format</button></div>
+    <aside class="panel workflow-panel" id="workflowPanel" aria-label="Social Studio-werkstroom">
+      <div class="panel-head"><span id="workflowTitle" class="visually-hidden">Kies je foto</span><span id="stepIndicator" class="visually-hidden" hidden>0/3 INGEVULD</span><button type="button" id="workflowBack" class="workflow-back" onclick="showWorkflowChooser()" hidden aria-label="Terug naar fotobewerking">&#8592; Kies formaat</button></div>
       <section id="brandImageStep" class="workflow-fields" aria-label="STAP 01: Kies een merk">
       <div class="field">
         <label class="title" for="brand">Kies een merk</label>
@@ -1501,17 +1500,17 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
           <button type="button" class="gallery-arrow next" hidden onclick="scrollGallery(1)" aria-label="Volgende beelden">&rsaquo;</button>
         </div>
         <label class="upload-btn">
-          <span class="icon" aria-hidden="true">&#8679;</span> Upload foto
+          <span class="icon" aria-hidden="true">&#8679;</span> Foto uploaden
           <input type="file" id="uploadInput" accept="image/*">
         </label>
         <button type="button" class="upload-btn" id="backgroundButton" onclick="openBackground()" hidden>AI-achtergrond</button>
         <div id="backgroundPanel" hidden style="margin-top:12px;">
           <label for="backgroundDescription">Beschrijf de gewenste achtergrond</label>
-          <input type="text" id="backgroundDescription" maxlength="1000" placeholder="Snowy landscape, Sunny beach, Modern office, Rainy city">
-          <button type="button" class="upload-btn" id="backgroundGenerate" onclick="generateBackground()">Generate</button>
+          <input type="text" id="backgroundDescription" maxlength="1000" placeholder="Besneeuwd landschap, zonnig strand, modern kantoor, regenachtige stad">
+          <button type="button" class="upload-btn" id="backgroundGenerate" onclick="generateBackground()">Genereren</button>
           <p id="backgroundStatus" role="status" aria-live="polite"></p>
           <p id="backgroundError" role="alert" style="color:var(--brand-error);"></p>
-          <img id="backgroundPreview" alt="Preview van de gegenereerde achtergrond" hidden style="max-width:100%;max-height:320px;object-fit:contain;">
+          <img id="backgroundPreview" alt="Voorbeeld van de gegenereerde achtergrond" hidden style="max-width:100%;max-height:320px;object-fit:contain;">
         </div>
         <div class="background-actions">
           <button type="button" class="upload-btn" id="backgroundAccept" onclick="acceptBackground()" hidden>Opslaan opnieuw proberen</button>
@@ -1525,16 +1524,16 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
         </label>
       </section>
       <nav id="workflowChooser" class="workflow-chooser" aria-label="Kies wat je met je foto wilt maken">
-        <button type="button" disabled class="workflow-choice" id="chooseAdvertisement" onclick="showStudioWorkflow('advertisement')"><span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg></span><span class="choice-text">Social ad maken</span></button>
+        <button type="button" disabled class="workflow-choice" id="chooseAdvertisement" onclick="showStudioWorkflow('advertisement')"><span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg></span><span class="choice-text">Advertentie maken</span></button>
         <button type="button" disabled class="workflow-choice" id="chooseVideo" onclick="showStudioWorkflow('video')"><span class="choice-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="4"/><path d="m10 9 5 3-5 3V9Z"/></svg></span><span class="choice-text">Video maken</span></button>
 
       </nav>
-      <section id="advertisementFields" class="workflow-fields" hidden aria-label="Social Advertentie instellingen">
+      <section id="advertisementFields" class="workflow-fields" hidden aria-label="Instellingen voor sociale advertenties">
       <div class="field">
         <label class="title">Platform &amp; toon</label>
         <select id="platform" style="margin-bottom:10px;">
-          <option value="Instagram / Facebook post">Instagram / Facebook — feedpost</option>
-          <option value="Instagram / Facebook story">Instagram / Facebook — story</option>
+          <option value="Instagram / Facebook post">Instagram / Facebook — bericht</option>
+          <option value="Instagram / Facebook story">Instagram / Facebook — verhaal</option>
           <option value="Google Ads (zoekadvertentie)">Google Ads — zoekadvertentie</option>
           <option value="TikTok">TikTok — verticale video</option>
         </select>
@@ -1543,12 +1542,12 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
           <option value="Enthousiast en speels">Toon: enthousiast &amp; speels</option>
           <option value="Zakelijk en informatief">Toon: zakelijk &amp; informatief</option>
           <option value="Urgent, actiegericht">Toon: urgent / actiegericht</option>
-          <option value="Nuchter en to-the-point (typisch NL)">Toon: nuchter &amp; to-the-point</option>
+          <option value="Nuchter en to-the-point (typisch NL)">Toon: nuchter &amp; direct</option>
         </select>
       </div>
 
       <div class="field usp-field">
-        <label class="title">USP's om te benadrukken</label>
+        <label class="title">Unieke voordelen om te benadrukken</label>
         <div class="chips" id="uspChips">
           <label class="chip-opt"><input type="checkbox" value="Veilig getest volgens EN71 keurmerk"> Veilig getest (EN71)</label>
           <label class="chip-opt"><input type="checkbox" value="Innovatief ontwerp met WoW-effect"> Innovatief</label>
@@ -1564,14 +1563,14 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
         <input type="text" id="promo" placeholder="Omschrijf thema of actie" aria-label="Omschrijf thema of actie">
       </div>
       <div class="field workflow-hidden-controls" hidden>
-        <label class="title" for="outputType">Output type</label>
-        <select id="outputType" onchange="updateVideoMode()"><option value="image" selected>Image</option><option value="ai-video">AI Video</option></select>
-        <div id="videoOptions" hidden aria-hidden="true"><select id="videoDuration"><option value="3">3 seconds</option><option value="4" selected>4 seconds</option><option value="5">5 seconds</option></select><select id="videoMotion"><option value="zoom-in" selected>Slow Zoom In</option><option value="zoom-out">Slow Zoom Out</option><option value="pan-right">Pan Left to Right</option><option value="pan-left">Pan Right to Left</option></select></div>
+        <label class="title" for="outputType">Uitvoertype</label>
+        <select id="outputType" onchange="updateVideoMode()"><option value="image" selected>Afbeelding</option><option value="ai-video">AI-video</option></select>
+        <div id="videoOptions" hidden aria-hidden="true"><select id="videoDuration"><option value="3">3 seconden</option><option value="4" selected>4 seconden</option><option value="5">5 seconden</option></select><select id="videoMotion"><option value="zoom-in" selected>Langzaam inzoomen</option><option value="zoom-out">Langzaam uitzoomen</option><option value="pan-right">Van links naar rechts</option><option value="pan-left">Van rechts naar links</option></select></div>
       </div>
       <input type="hidden" id="variantCount" value="4">
       <div class="field workflow-primary-action"><button class="generate-btn" id="generateBtn" onclick="generateAds()">Genereer advertentie <span class="arrow" aria-hidden="true">&rarr;</span></button></div>
       </section>
-      <section id="videoFields" class="workflow-fields" hidden aria-label="Social Video instellingen">
+      <section id="videoFields" class="workflow-fields" hidden aria-label="Instellingen voor sociale video">
         <div class="field video-step">
           <div id="aiVideoOptions" hidden>
             <details class="selected-image-details" hidden>
@@ -1587,16 +1586,16 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
                 <label class="video-format-choice"><input type="radio" name="studioVideoFormat" value="16:9" onchange="selectAIVideoFormat(this.value)"><span><strong>Liggend</strong><span>16:9</span></span></label>
               </div>
             </fieldset>
-            <label for="aiVideoAspect" class="visually-hidden">Aspect ratio</label>
+            <label for="aiVideoAspect" class="visually-hidden">Beeldverhouding</label>
             <select id="aiVideoAspect" class="visually-hidden" aria-hidden="true" tabindex="-1"><option value="9:16" selected>Staand 9:16</option><option value="16:9">Liggend 16:9</option></select>
-            <p id="aiVideoSquareHint" class="hint" hidden>Google AI Video maakt geen vierkante video. Kies 16:9 of 9:16.</p>
+            <p id="aiVideoSquareHint" class="hint" hidden>Google AI-video maakt geen vierkante video. Kies 16:9 of 9:16.</p>
             <button type="button" class="generate-btn" id="generateAIVideoBtn" onclick="generateAIVideo()">Genereer mijn video</button>
             <p id="aiVideoNoImage" class="hint" role="alert" hidden>Selecteer eerst een merkbeeld.</p>
           </div>
         </div>
       </section>
     </aside>
-    <section class="workspace-canvas" id="workspaceCanvas" aria-label="Social Studio canvas">
+    <section class="workspace-canvas" id="workspaceCanvas" aria-label="Social Studio-werkgebied">
       <div class="workspace-placeholder" id="workspacePlaceholder">
         <div class="empty-studio-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8" cy="8" r="1.5"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg></div>
         <h1>Kies een foto</h1>
@@ -1605,7 +1604,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
       <div class="workspace-image-preview" id="workspaceImagePreview" hidden><img id="workspaceProductImage" alt="Geselecteerd productbeeld"></div>
     <div class="output" id="workspaceOutput" hidden>
       <div class="output-head">
-        <h2 id="workspaceHeading">Gegenereerde content</h2>
+        <h2 id="workspaceHeading">Gegenereerde inhoud</h2>
         <div style="display:flex;align-items:center;gap:12px;">
           <span id="outputMeta">nog niets gegenereerd</span>
           <button id="downloadAllBtn" class="dl-all-btn" onclick="downloadAllVariants()" style="display:none;">&#8595; Download alles (.txt)</button>
@@ -1622,12 +1621,12 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
       <p>Selecteer twee, drie of vier kanalen. Tekst en beeld worden hergebruikt.</p><div id="duplicateChoices"></div>
       <p id="duplicateStatus" role="status" aria-live="polite"></p>
       <div class="card-dl-row library-actions"><button class="card-dl-btn" onclick="document.getElementById('duplicateDialog').close()">Annuleren</button>
-      <button class="card-dl-btn" id="confirmDuplicate" onclick="confirmDuplicate()" disabled>Maak batch</button></div></dialog>
+      <button class="card-dl-btn" id="confirmDuplicate" onclick="confirmDuplicate()" disabled>Maak reeks</button></div></dialog>
     </div>
     </section>
   </main>
-  <footer class="social-platform-footer" aria-label="Social media platforms"><span class="social-platform-mark" role="img" aria-label="Facebook" style="--sprite-x:-14.566px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="X" style="--sprite-x:-53.076px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="Instagram" style="--sprite-x:-91.586px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="YouTube" style="--sprite-x:-130.097px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="Dribbble" style="--sprite-x:-14.566px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Pinterest" style="--sprite-x:-53.076px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="LinkedIn" style="--sprite-x:-91.586px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Snapchat" style="--sprite-x:-130.097px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Twitch" style="--sprite-x:-14.566px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="TikTok" style="--sprite-x:-53.076px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="WhatsApp" style="--sprite-x:-91.586px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="Reddit" style="--sprite-x:-130.097px;--sprite-y:-117.628px"></span></footer>
-  <div class="studio-copyright">All rights reserved OomAgent 2026</div>
+  <footer class="social-platform-footer" aria-label="Socialemediaplatforms"><span class="social-platform-mark" role="img" aria-label="Facebook" style="--sprite-x:-14.566px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="X" style="--sprite-x:-53.076px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="Instagram" style="--sprite-x:-91.586px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="YouTube" style="--sprite-x:-130.097px;--sprite-y:-26.924px"></span><span class="social-platform-mark" role="img" aria-label="Dribbble" style="--sprite-x:-14.566px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Pinterest" style="--sprite-x:-53.076px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="LinkedIn" style="--sprite-x:-91.586px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Snapchat" style="--sprite-x:-130.097px;--sprite-y:-72.276px"></span><span class="social-platform-mark" role="img" aria-label="Twitch" style="--sprite-x:-14.566px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="TikTok" style="--sprite-x:-53.076px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="WhatsApp" style="--sprite-x:-91.586px;--sprite-y:-117.628px"></span><span class="social-platform-mark" role="img" aria-label="Reddit" style="--sprite-x:-130.097px;--sprite-y:-117.628px"></span></footer>
+  <div class="studio-copyright">Alle rechten voorbehouden OomAgent 2026</div>
 
 </div>
 
@@ -1669,7 +1668,7 @@ function restoreStudioWorkflowView(workflow){
   const savedLibrary=document.getElementById('savedLibrary');
   const download=document.getElementById('downloadAllBtn');
   document.getElementById('outputMeta').textContent=state?.meta|| (workflow==='video'?'Nog geen video gegenereerd':'Nog geen advertenties gegenereerd');
-  document.getElementById('workspaceHeading').textContent=workflow==='video'?'Social Video':'Social Advertenties';
+  document.getElementById('workspaceHeading').textContent=workflow==='video'?'Sociale video':'Sociale advertenties';
   if(download)download.style.display=workflow==='advertisement'?(state?.download||'none'):'none';
   if(adjustments)adjustments.style.display=workflow==='advertisement'?(state?.adjustDisplay||'none'):'none';
   if(advanced){advanced.hidden=workflow!=='advertisement'||(state?.advancedHidden??true);advanced.open=workflow==='advertisement'&&!!state?.advancedOpen;}
@@ -1694,7 +1693,7 @@ function showStudioWorkflow(workflow){
   if(adGenerationInProgress){studioNotice('Wacht tot de huidige generatie is voltooid voordat je van workflow wisselt.');return false;}
   saveStudioWorkflowView(activeStudioWorkflow);
   activeStudioWorkflow=workflow;
-  document.getElementById('workflowTitle').textContent=workflow==='video'?'Social Video':'Social Advertentie';
+  document.getElementById('workflowTitle').textContent=workflow==='video'?'Sociale video':'Sociale advertentie';
   document.getElementById('workflowChooser').hidden=true;
   document.getElementById('workflowBack').hidden=false;
   document.getElementById('brandImageStep').hidden=false;
@@ -1719,7 +1718,7 @@ function showStudioWorkflow(workflow){
   return true;
 }
 function showWorkflowChooser(){
-  if(adGenerationInProgress){studioNotice('Wacht tot de huidige generatie is voltooid voordat je teruggaat naar Kies format.');return false;}
+  if(adGenerationInProgress){studioNotice('Wacht tot de huidige generatie is voltooid voordat je teruggaat naar Kies formaat.');return false;}
   saveStudioWorkflowView(activeStudioWorkflow);
   activeStudioWorkflow=null;
   document.getElementById('workflowTitle').textContent='Kies je foto';
@@ -2319,8 +2318,8 @@ function renderImageGallery(){
   if(typeof syncBackgroundImage === 'function') syncBackgroundImage();
   gallery.innerHTML = all.map((src, i) => `
     <div class="img-thumb ${src === selectedImage ? 'selected' : ''}" data-src="${escapeHtml(src)}" onclick="selectImage('${escapeHtml(src).replace(/'/g,"\\'")}')">
-      ${savedImages.some(image => image.image === src && image.source === "ai-background") ? '<span class="ai-image-badge" aria-label="AI-generated image">AI</span>' : ''}
-      <img src="${escapeHtml(src)}" alt="Productbeeld ${i+1}" loading="lazy" onerror="this.parentElement.classList.add('loading-thumb'); this.parentElement.innerHTML='geen preview';">
+      ${savedImages.some(image => image.image === src && image.source === "ai-background") ? '<span class="ai-image-badge" aria-label="AI-gegenereerde afbeelding">AI</span>' : ''}
+      <img src="${escapeHtml(src)}" alt="Productbeeld ${i+1}" loading="lazy" onerror="this.parentElement.classList.add('loading-thumb'); this.parentElement.innerHTML='geen voorbeeld';">
     </div>
   `).join('');
 }
@@ -2524,7 +2523,7 @@ function setAdGenerationState(generating){
   btn.disabled = generating;
   btn.setAttribute('aria-busy', String(generating));
   resultsArea.setAttribute('aria-busy', String(generating));
-  btn.innerHTML = generating ? 'Generating...' : 'Genereer advertentie <span class="arrow" aria-hidden="true">&rarr;</span>';
+  btn.innerHTML = generating ? 'Bezig met genereren...' : 'Genereer advertentie <span class="arrow" aria-hidden="true">&rarr;</span>';
   if(generating){
     document.getElementById('workspaceImagePreview').hidden = true;
     document.getElementById('workspaceCanvas').style.background = '';
@@ -2532,9 +2531,9 @@ function setAdGenerationState(generating){
     document.getElementById('workspacePlaceholder').hidden = true;
     document.getElementById('downloadAllBtn').style.display = 'none';
     document.getElementById('imgAdjust').style.display = 'none';
-    document.getElementById('outputMeta').textContent = 'Generating...';
+    document.getElementById('outputMeta').textContent = 'Bezig met genereren...';
     resultsArea.innerHTML = `<div class="loading" id="adGenerationLoading">
-      <p id="adGenerationStatus" role="status" aria-live="polite">Generating your advertisements…</p>
+      <p id="adGenerationStatus" role="status" aria-live="polite">Je advertenties worden gegenereerd…</p>
       <div class="bar" role="progressbar" aria-labelledby="adGenerationStatus"></div>
     </div>`;
   }else{
@@ -2593,7 +2592,7 @@ Als hashtags niet van toepassing zijn voor dit platform, geef een lege array ter
     });
 
     if(!response.ok){
-      throw new Error("API request mislukt (" + response.status + ")");
+      throw new Error("API-aanvraag mislukt (" + response.status + ")");
     }
 
     const data = await response.json();
@@ -2794,7 +2793,7 @@ function onEdit(el){
     if(countEl && limits){
       const max = field === "headline" ? limits.headline : limits.body;
       const len = v[field].length;
-      countEl.innerHTML = `<b>${len}</b>/${max} tekens — ${field === "headline" ? "kop" : "body"}`;
+      countEl.innerHTML = `<b>${len}</b>/${max} tekens — ${field === "headline" ? "kop" : "tekst"}`;
       countEl.classList.toggle("over-limit", len > max);
     }
   }
@@ -2851,20 +2850,20 @@ updateFormatOptions();
 renderImageGallery();
 showWorkflowChooser();
 </script>
-<script src="animated-video.js"></script>
-<script src="ai-video.js?v=video-failure-details-4"></script>
-<script src="ai-background.js?v=auto-apply-3"></script>
+<script src="animated-video.js?v=dutch-copy-1"></script>
+<script src="ai-video.js?v=dutch-copy-5"></script>
+<script src="ai-background.js?v=dutch-copy-4"></script>
 <script src="studio-library.js"></script>
 
 <div id="aiVideoConfirmModal" class="ai-video-modal" hidden role="dialog" aria-modal="true" aria-labelledby="aiVideoConfirmTitle">
   <div class="ai-video-modal-card" role="document">
-    <h2 id="aiVideoConfirmTitle">Generate AI Video?</h2>
-    <p>You&apos;re about to create a 4-second AI video using Google Gemini Omni. This is a paid generation.</p>
-    <p class="ai-video-modal-secondary">Your selected brand image and video prompt will be used to create the video.</p>
-    <p id="aiVideoRetryWarning" class="ai-video-modal-secondary" hidden>The previous video request may already have started. Starting again may create another paid video.</p>
+    <h2 id="aiVideoConfirmTitle">AI-video genereren?</h2>
+    <p>Je gaat een AI-video van 4 seconden maken met Google Gemini Omni. Dit is een betaalde generatie.</p>
+    <p class="ai-video-modal-secondary">Je geselecteerde merkbeeld en videobeschrijving worden gebruikt om de video te maken.</p>
+    <p id="aiVideoRetryWarning" class="ai-video-modal-secondary" hidden>De vorige videoaanvraag is mogelijk al gestart. Opnieuw starten kan een extra betaalde video opleveren.</p>
     <div class="ai-video-modal-actions">
-      <button type="button" id="aiVideoConfirmButton" class="generate-btn">Generate video</button>
-      <button type="button" id="aiVideoCancelButton" class="card-dl-btn">Cancel</button>
+      <button type="button" id="aiVideoConfirmButton" class="generate-btn">Video genereren</button>
+      <button type="button" id="aiVideoCancelButton" class="card-dl-btn">Annuleren</button>
     </div>
   </div>
 </div>

@@ -525,9 +525,9 @@ body{background:#d8d3cc!important;}
 /* Flat canvas preview without drop shadows. */
 .workspace-canvas,.workspace-image-preview,.workspace-image-preview img{box-shadow:none!important;filter:none!important;}
 
-/* Keep the supplied EPS colours; the picture wrapper preserves the header flex layout. */
+/* Blend the supplied white logo background into the header without editing the image. */
 .masthead .client-brand-picture{display:contents;}
-.masthead .client-brand-logo{filter:none;image-rendering:auto;}
+.masthead .client-brand-logo{filter:none;image-rendering:auto;mix-blend-mode:multiply;}
 
 /* Video controls follow the warm, minimal studio design. */
 .workflow-panel #aiVideoOptions{background:transparent!important;padding:0!important;border:0!important;box-shadow:none!important;}

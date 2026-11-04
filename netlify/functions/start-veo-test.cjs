@@ -19,12 +19,12 @@ function parseImage(value) {
 function validateInput(body) {
   let input;
   try { input = JSON.parse(body || '{}'); }
-  catch { return {error:'Request body must be valid JSON.'}; }
+  catch { return {error:'De aanvraaggegevens moeten geldige JSON bevatten.'}; }
   const image = parseImage(input?.image);
   const prompt = typeof input?.prompt === 'string' ? input.prompt.trim() : '';
-  if (!image) return {error:'Upload a non-empty JPEG, PNG or WebP image no larger than 20 MB.'};
-  if (!prompt || prompt.length > 4000) return {error:'Enter a prompt between 1 and 4000 characters.'};
-  if (!['16:9', '9:16'].includes(input.aspectRatio)) return {error:'Aspect ratio must be 16:9 or 9:16.'};
+  if (!image) return {error:'Upload een niet-lege JPEG-, PNG- of WebP-afbeelding van maximaal 20 MB.'};
+  if (!prompt || prompt.length > 4000) return {error:'Voer een beschrijving van 1 tot 4000 tekens in.'};
+  if (!['16:9', '9:16'].includes(input.aspectRatio)) return {error:'De beeldverhouding moet 16:9 of 9:16 zijn.'};
   return {image, prompt, aspectRatio:input.aspectRatio};
 }
 /** @param {VideoInput} input */
@@ -38,8 +38,8 @@ function generationRequest({image, prompt, aspectRatio}) {
 }
 /** @param {import('../lib/omni-video.cjs').VideoEvent} event @param {unknown} context @param {string} feature */
 exports.handler = async function handler(event, context, feature = 'veo-test') {
-  if (event.httpMethod !== 'POST') return reply(405, {error:'Method not allowed.'});
-  if (!apiKey()) return reply(500, {error:'The Google video API key is not configured on the server.', category:'configuration'});
+  if (event.httpMethod !== 'POST') return reply(405, {error:'Methode niet toegestaan.'});
+  if (!apiKey()) return reply(500, {error:'De API-sleutel voor Google-video is niet ingesteld op de server.', category:'configuration'});
   const input = validateInput(event.body);
   if (input.error) return reply(400, {error:input.error, category:'invalid-input'});
   try {
@@ -50,7 +50,7 @@ exports.handler = async function handler(event, context, feature = 'veo-test') {
     });
     if (failure) return failure;
     if (typeof data?.id !== 'string' || !INTERACTION_ID_PATTERN.test(data.id)) {
-      return reply(502, {error:'Google returned an invalid video operation.', category:'invalid-response'});
+      return reply(502, {error:'Google gaf een ongeldig videoaanvraagnummer.', category:'invalid-response'});
     }
     return reply(202, {success:true, operation:`interactions/${data.id}`});
   } catch (error) { return networkFailure(error); }

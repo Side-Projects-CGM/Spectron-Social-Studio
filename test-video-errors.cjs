@@ -22,11 +22,11 @@ after(() => {
 });
 
 for (const [code, category, message] of [
-  ['RESOURCE_EXHAUSTED', 'quota', /usage limit/],
-  ['PERMISSION_DENIED', 'permission', /permission/],
-  ['UNAUTHENTICATED', 'authentication', /authenticate/],
-  ['SAFETY_BLOCKED', 'content-filter', /content filter/],
-  ['INTERNAL', 'generation-failed', /could not generate/]
+  ['RESOURCE_EXHAUSTED', 'quota', /gebruikslimiet/],
+  ['PERMISSION_DENIED', 'permission', /toegang/],
+  ['UNAUTHENTICATED', 'authentication', /aanmelden/],
+  ['SAFETY_BLOCKED', 'content-filter', /inhoudsfilter/],
+  ['INTERNAL', 'generation-failed', /kon deze video niet genereren/]
 ]) test(`Google errors[]: ${code} becomes a safe, specific failure`, async () => {
   payload = {status:'failed', errors:[{code, message:'private prompt mock-video-errors-only https://private.test'}]};
   const result = JSON.parse((await service.status(event, 'ai-video')).body);
@@ -82,10 +82,10 @@ function frontend(response) {
 }
 
 test('confirmed failed generation does not claim it may still be running or auto-regenerate', async () => {
-  const {ctx, elements, requests} = frontend(Response.json({state:'failed', category:'quota', message:'Google usage limit reached.'}));
+  const {ctx, elements, requests} = frontend(Response.json({state:'failed', category:'quota', message:'De gebruikslimiet van Google is bereikt.'}));
   await ctx.pollAIVideo('interactions/mock');
-  assert.match(elements.resultsArea.innerHTML, /usage limit/);
-  assert.doesNotMatch(elements.resultsArea.innerHTML, /may already have started|may create another paid video/);
+  assert.match(elements.resultsArea.innerHTML, /gebruikslimiet/);
+  assert.doesNotMatch(elements.resultsArea.innerHTML, /mogelijk al gestart|extra betaalde video opleveren/);
   assert.equal(vm.runInContext('aiVideoMayHaveStarted', ctx), false);
   assert.equal(requests(), 1);
 });
@@ -93,15 +93,15 @@ test('confirmed failed generation does not claim it may still be running or auto
 test('network/status failure retains the uncertain paid-request warning', async () => {
   const {ctx, elements, requests} = frontend(Response.json({error:'Unavailable'}, {status:502}));
   await ctx.pollAIVideo('interactions/mock');
-  assert.match(elements.resultsArea.innerHTML, /may create another paid video/);
+  assert.match(elements.resultsArea.innerHTML, /extra betaalde video opleveren/);
   assert.equal(requests(), 1);
 });
 
 test('content-filter failure offers no one-click retry', async () => {
-  const {ctx, elements} = frontend(Response.json({state:'failed', category:'content-filter', message:'Google content filter blocked this video.'}));
+  const {ctx, elements} = frontend(Response.json({state:'failed', category:'content-filter', message:'Het inhoudsfilter van Google heeft deze video geblokkeerd.'}));
   await ctx.pollAIVideo('interactions/mock');
-  assert.doesNotMatch(elements.resultsArea.innerHTML, />Retry<|onclick="generateAIVideo\(\)"|may already have started/);
-  assert.match(elements.resultsArea.innerHTML, /New paid video \(confirmation required\)/);
+  assert.doesNotMatch(elements.resultsArea.innerHTML, />Opnieuw proberen<|onclick="generateAIVideo\(\)"|mogelijk al gestart/);
+  assert.match(elements.resultsArea.innerHTML, /Nieuwe betaalde video \(bevestiging vereist\)/);
 });
 
 test('all backend tests only perform mocked reads, never start generation', () => {

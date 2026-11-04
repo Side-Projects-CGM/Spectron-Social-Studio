@@ -70,7 +70,7 @@ test('accepted ID is stored with orientation only; submission/polling block dupl
   accept(json({operation:OPERATION})); await pending;
   assert.deepEqual(JSON.parse(state.storage.get(KEY)), {operation:OPERATION, aspectRatio:'9:16'});
   assert.doesNotMatch(state.storage.get(KEY), /private|YWJj|blob:|key|prompt|image/);
-  assert.match(state.elements.outputMeta.textContent, /pending/);
+  assert.match(state.elements.outputMeta.textContent, /in behandeling/);
   await state.context.generateAIVideo(true);
   assert.equal(starts(state), 1, 'polling also blocks starts');
 });
@@ -86,16 +86,16 @@ test('refresh offers recovery; retry checks the ID without image or paid confirm
   await state.context.generateAIVideo();
   assert.equal(starts(state), 0);
   assert.match(state.calls[0].url, /operation=interactions%2Fmock-recovery$/);
-  assert.match(state.elements.outputMeta.textContent, /pending/);
+  assert.match(state.elements.outputMeta.textContent, /in behandeling/);
 });
 
 test('poll errors and monitoring timeout retain ID and allow GET-only recovery', async () => {
   const state = browser(); recover(state);
   state.respond = () => {throw new TypeError('offline');};
   await state.context.resumeAIVideo();
-  assert.match(state.elements.outputMeta.textContent, /monitoring interrupted/);
+  assert.match(state.elements.outputMeta.textContent, /statuscontrole onderbroken/);
   assert.match(state.elements.resultsArea.innerHTML, /resumeAIVideo/);
-  assert.doesNotMatch(state.elements.resultsArea.innerHTML, />Retry<|onclick="generateAIVideo\(\)"/);
+  assert.doesNotMatch(state.elements.resultsArea.innerHTML, />Opnieuw proberen<|onclick="generateAIVideo\(\)"/);
   assert.equal(JSON.parse(state.storage.get(KEY)).operation, OPERATION);
   state.respond = () => json({state:'pending'});
   await state.context.resumeAIVideo();
@@ -103,7 +103,7 @@ test('poll errors and monitoring timeout retain ID and allow GET-only recovery',
   const before = state.calls.length;
   await state.context.pollAIVideo(OPERATION);
   assert.equal(state.calls.length, before);
-  assert.match(state.elements.resultsArea.innerHTML, /Google may still be working/);
+  assert.match(state.elements.resultsArea.innerHTML, /Google is mogelijk nog bezig/);
   assert.doesNotMatch(state.elements.outputMeta.textContent, /mislukt/);
   await state.context.resumeAIVideo();
   assert.equal(starts(state), 0);
@@ -116,7 +116,7 @@ test('HTTP, malformed and unexpected status responses interrupt monitoring witho
     const state = browser(); recover(state);
     state.respond = response;
     await state.context.resumeAIVideo();
-    assert.match(state.elements.outputMeta.textContent, /monitoring interrupted/);
+    assert.match(state.elements.outputMeta.textContent, /statuscontrole onderbroken/);
     assert.equal(JSON.parse(state.storage.get(KEY)).operation, OPERATION);
     assert.match(state.elements.resultsArea.innerHTML, /resumeAIVideo/);
     assert.equal(starts(state), 0);
@@ -125,9 +125,9 @@ test('HTTP, malformed and unexpected status responses interrupt monitoring witho
 
 test('failed, completed-without-output and unknown statuses are distinct and retain recovery', async () => {
   for (const [result, title] of [
-    [{state:'failed', message:'Google reported failure'}, /mislukt/],
-    [{state:'completed', outputAvailable:false, category:'output-unavailable'}, /completed, output unavailable/],
-    [{state:'unknown'}, /monitoring interrupted/]
+    [{state:'failed', message:'Google meldt een mislukte aanvraag'}, /mislukt/],
+    [{state:'completed', outputAvailable:false, category:'output-unavailable'}, /voltooid, resultaat niet beschikbaar/],
+    [{state:'unknown'}, /statuscontrole onderbroken/]
   ]) {
     const state = browser(); recover(state);
     state.respond = () => json(result);
@@ -135,7 +135,7 @@ test('failed, completed-without-output and unknown statuses are distinct and ret
     assert.match(state.elements.outputMeta.textContent, title);
     assert.equal(JSON.parse(state.storage.get(KEY)).operation, OPERATION);
     assert.equal(starts(state), 0);
-    assert.match(state.elements.resultsArea.innerHTML, /New paid video \(confirmation required\)/);
+    assert.match(state.elements.resultsArea.innerHTML, /Nieuwe betaalde video \(bevestiging vereist\)/);
   }
 });
 
@@ -159,16 +159,16 @@ test('completed recovery downloads MP4 to Blob preview; download/browser errors 
     : downloadFails ? new Response('unavailable', {status:502})
     : new Response('mock-mp4', {headers:{'Content-Type':'video/mp4'}});
   await state.context.resumeAIVideo();
-  assert.match(state.elements.outputMeta.textContent, /completed, preview unavailable/);
+  assert.match(state.elements.outputMeta.textContent, /voltooid, voorbeeld niet beschikbaar/);
   assert.equal(state.elements.aiVideoPreviewError.hidden, false);
   downloadFails = false;
   await state.context.resumeAIVideo();
   assert.equal(state.elements.aiVideoPreview.src, 'blob:mock-preview');
   assert.equal(state.elements.aiVideoPreview.loaded, true);
   assert.equal(state.elements.aiVideoPreview.dataset.previewRatio, 'landscape');
-  assert.match(state.elements.outputMeta.textContent, /completed$/);
+  assert.match(state.elements.outputMeta.textContent, /voltooid$/);
   state.elements.aiVideoPreview.onerror();
-  assert.match(state.elements.outputMeta.textContent, /completed, preview unavailable/);
+  assert.match(state.elements.outputMeta.textContent, /voltooid, voorbeeld niet beschikbaar/);
   await state.context.resumeAIVideo();
   assert.deepEqual(state.revoked, ['blob:mock-preview']);
   assert.equal(starts(state), 0);
@@ -178,11 +178,11 @@ test('lost start response stores only an uncertainty marker; refresh never resub
   const state = browser();
   state.respond = () => {throw new TypeError('network lost');};
   await submit(state);
-  assert.match(state.elements.resultsArea.innerHTML, /No operation ID.*unconfirmed/);
+  assert.match(state.elements.resultsArea.innerHTML, /geen aanvraagnummer.*niet bevestigd/);
   assert.doesNotMatch(state.elements.resultsArea.innerHTML, /resumeAIVideo/);
   const refreshed = browser(state.storage);
   refreshed.context.restoreAIVideoRecovery();
-  assert.match(refreshed.elements.resultsArea.innerHTML, /no operation ID/);
+  assert.match(refreshed.elements.resultsArea.innerHTML, /geen aanvraagnummer/);
   assert.equal(refreshed.calls.length, 0);
   await refreshed.context.resumeAIVideo();
   assert.equal(refreshed.calls.length, 0);

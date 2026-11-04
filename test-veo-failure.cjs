@@ -17,12 +17,12 @@ test('production status, logs and usage preserve failure reasons with mocked net
   try {
     const handler = require(paths[1]).handler;
     const cases = [
-      [{done:true,response:{generateVideoResponse:{raiMediaFilteredCount:1,raiMediaFilteredReasons:['The uploaded image contains a child. Please use an image of an adult.']}}}, /content filter/],
-      [{done:true,error:{message:'The video could not be generated because the image is too small.'}}, /image is too small/],
-      [{done:true,error:{message:'Please use an image of an adult. Internal URL https://private.test?key=mock-secret',details:{stack:'private stack'}}}, /image of an adult/],
-      [{done:true}, /Google reported/],
-      [{done:true,error:{message:'SAFETY_BLOCKED'}}, /safety checks/],
-      [{done:true,response:{generateVideoResponse:{raiMediaFilteredCount:1,raiMediaFilteredReasons:['Guardrails related to third-party content.']}}}, /third-party artwork/],
+      [{done:true,response:{generateVideoResponse:{raiMediaFilteredCount:1,raiMediaFilteredReasons:['The uploaded image contains a child. Please use an image of an adult.']}}}, /inhoudsfilter/],
+      [{done:true,error:{message:'The video could not be generated because the image is too small.'}}, /grotere afbeelding/],
+      [{done:true,error:{message:'Please use an image of an adult. Internal URL https://private.test?key=mock-secret',details:{stack:'private stack'}}}, /zonder minderjarigen/],
+      [{done:true}, /Google heeft gemeld/],
+      [{done:true,error:{message:'SAFETY_BLOCKED'}}, /veiligheidscontrole/],
+      [{done:true,response:{generateVideoResponse:{raiMediaFilteredCount:1,raiMediaFilteredReasons:['Guardrails related to third-party content.']}}}, /beeldmateriaal van derden/],
     ];
     for (const [body, expected] of cases) {
       payload = body;
@@ -54,12 +54,12 @@ test('page displays the confirmed failure reason without an uncertain retry warn
   const elements={resultsArea:{},outputMeta:{},generateAIVideoBtn:{setAttribute(){}}};let calls=0;
   const ctx=vm.createContext({window:{addEventListener(){}},document:{getElementById:id=>elements[id]},
     setAdGenerationState(){},escapeHtml:s=>s,clearTimeout(){},Date,console,
-    fetch:async()=>{calls++;return new Response(JSON.stringify({state:'failed',message:'Google safety checks blocked this video request. Please use an image of an adult.'}),{headers:{'Content-Type':'application/json'}});}});
+    fetch:async()=>{calls++;return new Response(JSON.stringify({state:'failed',message:'De veiligheidscontrole van Google heeft deze videoaanvraag geblokkeerd. Please use an image of an adult.'}),{headers:{'Content-Type':'application/json'}});}});
   vm.runInContext(fs.readFileSync('ai-video.js','utf8'),ctx);
   vm.runInContext('aiVideoRunning=true;aiVideoPollStarted=Date.now()',ctx);
   await ctx.pollAIVideo('operations/mock');
   assert.match(elements.resultsArea.innerHTML,/image of an adult/);
-  assert.doesNotMatch(elements.resultsArea.innerHTML,/Starting again may create another paid video/);
+  assert.doesNotMatch(elements.resultsArea.innerHTML,/Opnieuw starten kan een extra betaalde video opleveren/);
   assert.equal(calls,1);
 });
 
@@ -72,8 +72,8 @@ test('third-party guardrails produce a content-filter message and no one-click r
   ]) {
     const failure=failureDetails({done:true,response});
     assert.equal(failure.category,'content-filter');
-    assert.match(failure.message,/other brands' logos or licensed characters/);
-    assert.match(failure.message,/different product photo without third-party artwork/);
+    assert.match(failure.message,/merklogo’s of beschermde personages/);
+    assert.match(failure.message,/andere productfoto zonder beeldmateriaal van derden/);
     const elements={resultsArea:{},outputMeta:{},generateAIVideoBtn:{setAttribute(){}}};let calls=0;
     const ctx=vm.createContext({window:{addEventListener(){}},document:{getElementById:id=>elements[id]},
       setAdGenerationState(){},escapeHtml:s=>s,clearTimeout(){},Date,console,
@@ -81,11 +81,11 @@ test('third-party guardrails produce a content-filter message and no one-click r
     vm.runInContext(fs.readFileSync('ai-video.js','utf8'),ctx);
     vm.runInContext('aiVideoRunning=true;aiVideoPollStarted=Date.now()',ctx);
     await ctx.pollAIVideo('operations/mock');
-    assert.match(elements.resultsArea.innerHTML,/content filter/);
-    assert.doesNotMatch(elements.resultsArea.innerHTML,/>Retry<|onclick="generateAIVideo\(\)"|Google safety checks or Veo generation failed/);
-    assert.match(elements.resultsArea.innerHTML,/New paid video \(confirmation required\)/);
-    assert.doesNotMatch(elements.resultsArea.innerHTML,/Starting again may create another paid video/);
+    assert.match(elements.resultsArea.innerHTML,/inhoudsfilter/);
+    assert.doesNotMatch(elements.resultsArea.innerHTML,/>Opnieuw proberen<|onclick="generateAIVideo\(\)"|Google safety checks or Veo generation failed/);
+    assert.match(elements.resultsArea.innerHTML,/Nieuwe betaalde video \(bevestiging vereist\)/);
+    assert.doesNotMatch(elements.resultsArea.innerHTML,/Opnieuw starten kan een extra betaalde video opleveren/);
     assert.equal(calls,1);
   }
-  assert.match(fs.readFileSync('spectron-social-studio.html','utf8'),/ai-video\.js\?v=video-failure-details-4/);
+  assert.match(fs.readFileSync('spectron-social-studio.html','utf8'),/ai-video\.js\?v=dutch-copy-5/);
 });

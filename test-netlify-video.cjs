@@ -67,7 +67,7 @@ async function checkVideoFlow() {
   const failed = await call('veo-video-status?operation=interactions%2Flocal-mock-failed');
   assert.equal((await failed.json()).category, 'content-filter');
   const quota = await start('mock:quota'); assert.equal(quota.status, 429);
-  assert.match((await quota.json()).error, /Google usage limit reached/);
+  assert.match((await quota.json()).error, /gebruikslimiet van Google/);
   const permission = await start('mock:permission'); assert.equal(permission.status, 502);
   assert.match((await permission.json()).error, /not permitted/);
 }

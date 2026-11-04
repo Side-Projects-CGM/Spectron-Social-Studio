@@ -9,7 +9,7 @@ const source = page.slice(start, end);
 for (const id of ['workflowChooser','brandImageStep','advertisementFields','videoFields','workspacePlaceholder','workspaceOutput']) {
   assert.match(page, new RegExp(`id="${id}"`), `${id} is present`);
 }
-assert.match(page, /Social ad maken/);
+assert.match(page, /Advertentie maken/);
 assert.match(page, /Video maken/);
 assert.match(page, /Staand[\s\S]*?9:16[\s\S]*?Liggend[\s\S]*?16:9/);
 assert.match(page, /id="workflowBack"[^>]*onclick="showWorkflowChooser\(\)"/);

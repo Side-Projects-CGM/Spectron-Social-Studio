@@ -88,5 +88,5 @@ test('preview fills explicit frames without layout padding or white background',
 test('image decode failure stops before a paid start',async()=>{
  const ctx=vm.createContext({document:{getElementById(){}},window:{addEventListener(){}},selectedImage:'mock-image',fetch:async()=>({blob:async()=>new Blob(['image'],{type:'image/png'})}),createImageBitmap:async()=>{throw Error('decode');},Blob});
  vm.runInContext(source,ctx);
- await assert.rejects(ctx.normalizeAIVideoImage('9:16'),/could not be decoded/);
+ await assert.rejects(ctx.normalizeAIVideoImage('9:16'),/kon niet worden verwerkt/);
 });

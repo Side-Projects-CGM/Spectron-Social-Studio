@@ -1,7 +1,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const source=fs.readFileSync('animated-video.js','utf8');
 const page=fs.readFileSync('spectron-social-studio.html','utf8');
-assert.match(page,/<option value="image" selected>Image/);
+assert.match(page,/<option value="image" selected>Afbeelding/);
 assert.match(page,/id="videoOptions" hidden/);
 assert.match(page,/<option value="4" selected/);
 assert.match(page,/<option value="zoom-in" selected/);
@@ -65,12 +65,12 @@ function session({unsupported=false,error=false,dimensions=[1080,1080],hold=fals
   }
  }
  for(const options of [{unsupported:true},{error:true}]){
-  s=session(options);await s.run('generateAnimatedAd()');assert.equal(s.el('generateBtn').disabled,false);assert.match(s.el('resultsArea').innerHTML,/Retry/);assert.equal(s.events.urls,0);
+  s=session(options);await s.run('generateAnimatedAd()');assert.equal(s.el('generateBtn').disabled,false);assert.match(s.el('resultsArea').innerHTML,/Opnieuw proberen/);assert.equal(s.events.urls,0);
   if(options.error)assert.ok(s.events.tracks>=1);
  }
  s=session({mp4:true});await s.run('generateAnimatedAd()');assert.match(s.el('animatedVideoDownload').download,/\.mp4$/);
- s=session();s.el('videoMotion').value='invalid';await s.run('generateAnimatedAd()');assert.match(s.el('resultsArea').innerHTML,/supported motion/);
- s=session();s.el('videoDuration').value='6';await s.run('generateAnimatedAd()');assert.match(s.el('resultsArea').innerHTML,/3, 4 or 5/);
+ s=session();s.el('videoMotion').value='invalid';await s.run('generateAnimatedAd()');assert.match(s.el('resultsArea').innerHTML,/ondersteunde bewegingsstijl/);
+ s=session();s.el('videoDuration').value='6';await s.run('generateAnimatedAd()');assert.match(s.el('resultsArea').innerHTML,/3, 4 of 5/);
  s=session({existing:false});await s.run('generateAnimatedAd()');assert.equal(s.events.urls,1);
  s=session({hold:true});const pending=s.run('generateAnimatedAd()');await new Promise(resolve=>setImmediate(resolve));
  s.el('outputType').value='image';s.run('updateVideoMode()');s.release();await pending;assert.equal(s.events.urls,0);assert.equal(s.el('generateBtn').disabled,false);

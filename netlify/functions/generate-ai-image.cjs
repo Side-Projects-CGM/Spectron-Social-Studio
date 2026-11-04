@@ -2,7 +2,7 @@ const { trackedFetch } = require('../lib/usage.cjs');
 const MAX_BYTES = 3 * 1024 * 1024;
 const reply = (statusCode, body) => ({statusCode, headers:{'Content-Type':'application/json','Cache-Control':'no-store, private'}, body:JSON.stringify(body)});
 exports.handler = async function(event) {
-  if(event.httpMethod !== 'POST') return {...reply(405, {error:'Method not allowed'}), headers:{Allow:'POST'}};
+  if(event.httpMethod !== 'POST') return {...reply(405, {error:'Methode niet toegestaan'}), headers:{Allow:'POST'}};
   let input;
   try { input = JSON.parse(event.body || '{}'); }
   catch { return reply(400, {error:'Ongeldig verzoek.'}); }

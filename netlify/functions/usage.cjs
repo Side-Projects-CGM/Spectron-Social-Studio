@@ -13,11 +13,11 @@ function authorized(event, password) {
 }
 function createHandler({read = readSummary, password = () => process.env.USAGE_DASHBOARD_PASSWORD} = {}) {
   return async event => {
-    if (event.httpMethod !== 'GET') return reply(405, {error:'Method not allowed'}, {Allow:'GET'});
-    if (!password()) return reply(503, {error:'Usage dashboard password is not configured on the server.'});
-    if (!authorized(event, password())) return reply(401, {error:'Enter the usage dashboard password.'});
+    if (event.httpMethod !== 'GET') return reply(405, {error:'Methode niet toegestaan'}, {Allow:'GET'});
+    if (!password()) return reply(503, {error:'Het wachtwoord voor het gebruiksdashboard is niet ingesteld op de server.'});
+    if (!authorized(event, password())) return reply(401, {error:'Voer het wachtwoord voor het gebruiksdashboard in.'});
     try { return reply(200, await read(event)); }
-    catch { return reply(503, {error:'Usage storage is currently unavailable. Generation is unaffected. Please try again.'}); }
+    catch { return reply(503, {error:'De opslag van gebruiksgegevens is momenteel niet beschikbaar. Genereren blijft werken. Probeer het opnieuw.'}); }
   };
 }
 exports.handler = createHandler();
