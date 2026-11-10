@@ -2,9 +2,9 @@ const {test, after} = require('node:test');
 const assert = require('node:assert/strict');
 const usage = require('./netlify/lib/usage.cjs');
 const records = [], requests = [];
-const MAX_DOWNLOAD_BYTES = 4_456_448;
+const MAX_DOWNLOAD_BYTES = 18 * 1024 * 1024;
 const PRODUCTION_VIDEO_BYTES = 4_266_833;
-const MAX_SERIALIZED_RESPONSE_BYTES = 6_000_000;
+const MAX_STREAMED_RESPONSE_BYTES = 20_000_000;
 const originalTracker = usage.trackedFetch;
 const originalKeys = {GEMINI_API_KEY:process.env.GEMINI_API_KEY, GOOGLE_DEVELOPER_API_KEY:process.env.GOOGLE_DEVELOPER_API_KEY};
 let payload, responseStatus = 200, networkError;
@@ -19,7 +19,7 @@ usage.trackedFetch = usage.createTracker({
 }).trackedFetch;
 const start = require('./netlify/functions/start-veo-video.cjs').handler;
 const status = require('./netlify/functions/veo-video-status.cjs').handler;
-const download = require('./netlify/functions/download-veo-video.cjs').handler;
+const download = require('./netlify/functions/download-veo-video.cjs').download;
 const event = (method = 'GET', operation = 'interactions/mock') => ({httpMethod:method, queryStringParameters:{operation}});
 const input = {image:'data:image/png;base64,YWJj', prompt:'Product showcase', aspectRatio:'9:16'};
 const post = body => ({httpMethod:'POST', body:JSON.stringify(body)});
@@ -56,7 +56,7 @@ test('start submits exactly one background Omni interaction and returns immediat
     model:'gemini-omni-1.1-flash', background:true, store:true,
     input:[{type:'image', data:'YWJj', mime_type:'image/png'}, {type:'text', text:'Product showcase'}],
     generation_config:{video_config:{task:'image_to_video'}},
-    response_format:{type:'video', aspect_ratio:'9:16', duration:'4s', resolution:'720p', delivery:'uri'}
+    response_format:{type:'video', aspect_ratio:'9:16', duration:'8s', resolution:'720p', delivery:'uri'}
   });
   assert.equal(usage.summarize(records).totals.veo.submitted, 1);
   assert.doesNotMatch(JSON.stringify(records), /mock-key|Product showcase|YWJj/);
@@ -110,7 +110,7 @@ test('status supports pending/completed/failed/cancelled, omits video data and d
   await status(event()); await status(event());
   const summary = usage.summarize(records);
   assert.equal(summary.totals.veo.attempts, 1); assert.equal(summary.totals.veo.completed, 1);
-  assert.equal(summary.totals.veo.videos, 1); assert.equal(summary.totals.veo.estimatedCompletedSeconds, 4);
+  assert.equal(summary.totals.veo.videos, 1); assert.equal(summary.totals.veo.estimatedCompletedSeconds, 8);
   assert.doesNotMatch(JSON.stringify(records), /ZmFrZS1tcDQ/);
   for (const operation of ['interactions/../evil', 'interactions/mock?key=x', 'https://evil.test']) {
     assert.equal((await status(event('GET', operation))).statusCode, 400);
@@ -123,8 +123,9 @@ test('download returns inline MP4, waits for pending and rejects malformed, over
   payload = completed({data:Buffer.from('fake-mp4').toString('base64')});
   const response = await download(event());
   assert.equal(response.statusCode, 200); assert.equal(response.headers['Content-Type'], 'video/mp4');
-  assert.equal(Buffer.from(response.body, 'base64').toString(), 'fake-mp4');
-  for (const video of [{data:'!!!'}, {data:Buffer.alloc(MAX_DOWNLOAD_BYTES + 1).toString('base64')},
+  assert.equal(response.body.toString(), 'fake-mp4');
+  for (const video of [{data:'!!!'}, {data:'YWJ'}, {data:'YW=J'}, {data:'A==='},
+    {data:Buffer.alloc(MAX_DOWNLOAD_BYTES + 1).toString('base64')},
     {uri:'https://evil.test/video.mp4'}, {uri:'http://generativelanguage.googleapis.com/v1beta/files/x:download'}]) {
     payload = completed(video); assert.equal((await download(event())).statusCode, 502);
   }
@@ -140,7 +141,7 @@ test('URI download stays on Google, sends credentials only there and rejects red
     return new Response('fake-mp4', {headers:{'Content-Type':'video/mp4'}});
   };
   const response = await download(event()); assert.equal(response.statusCode, 200);
-  assert.equal(Buffer.from(response.body, 'base64').toString(), 'fake-mp4');
+  assert.equal(response.body.toString(), 'fake-mp4');
   payload = url => url.endsWith('/interactions/mock')
     ? Response.json(completed({uri:'files/mock:download'})) : new Response('<html>not video</html>');
   assert.equal((await download(event())).statusCode, 502);
@@ -159,7 +160,7 @@ test('video URI without MIME metadata is extracted, reported available and downl
   assert.doesNotMatch(JSON.stringify(result), /files\/mock|untrusted/);
   const response = await download(event());
   assert.equal(response.statusCode, 200);
-  assert.equal(Buffer.from(response.body, 'base64').toString(), 'fake-mp4');
+  assert.equal(response.body.toString(), 'fake-mp4');
   assert.equal(requests.at(-1).url, 'https://generativelanguage.googleapis.com/v1beta/files/mock:download?alt=media');
   assert.equal(requests.at(-1).options.redirect, 'error');
   assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
@@ -198,7 +199,7 @@ test('observed video/unknown response accepts bounded MP4 ftyp and serves video/
     const response = await download(event());
     assert.equal(response.statusCode, 200);
     assert.equal(response.headers['Content-Type'], 'video/mp4');
-    assert.deepEqual(Buffer.from(response.body, 'base64'), bytes);
+    assert.deepEqual(response.body, bytes);
   }
   assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
 });
@@ -247,9 +248,9 @@ test('unknown-video fallback preserves MIME, size, URL and redirect restrictions
   };
   assert.equal((await download(event())).statusCode, 502);
 });
-test('production-sized and exact-cap downloads fit the complete serialized response budget', async () => {
+test('production-sized, eight-second-sized and exact-cap downloads fit the raw streaming budget', async () => {
   reset();
-  for (const size of [PRODUCTION_VIDEO_BYTES, MAX_DOWNLOAD_BYTES]) {
+  for (const size of [PRODUCTION_VIDEO_BYTES, 8 * 1024 * 1024, MAX_DOWNLOAD_BYTES]) {
     const bytes = Buffer.alloc(size); fileTypeBox().copy(bytes);
     for (const source of ['video/mp4', 'video/unknown']) {
       payload = url => url.endsWith('/interactions/mock')
@@ -257,14 +258,16 @@ test('production-sized and exact-cap downloads fit the complete serialized respo
         : new Response(bytes, {headers:{'Content-Type':source}});
       const response = await download(event());
       assert.equal(response.statusCode, 200, `${source}: ${size} bytes`);
-      assert.equal(response.isBase64Encoded, true);
+      assert.equal(response.isBase64Encoded, undefined);
       assert.equal(response.headers['Content-Type'], 'video/mp4');
-      assert.deepEqual(Buffer.from(response.body, 'base64'), bytes);
-      const serializedBytes = Buffer.byteLength(JSON.stringify(response), 'utf8');
-      assert.ok(serializedBytes < MAX_SERIALIZED_RESPONSE_BYTES,
-        `${source}: serialized response is ${serializedBytes} bytes`);
-      if (source === 'video/unknown') console.log(
-        `Download budget: binary=${size}, base64=${response.body.length}, serialized=${serializedBytes}`);
+      assert.deepEqual(response.body, bytes);
+      const streamed = await require('./netlify/functions/download-veo-video.cjs').default(
+        new Request('https://studio.test/.netlify/functions/download-veo-video?operation=interactions/mock'));
+      assert.equal(streamed.status, 200);
+      assert.ok(streamed.body instanceof ReadableStream);
+      assert.equal(streamed.headers.get('Content-Length'), String(size));
+      assert.deepEqual(Buffer.from(await streamed.arrayBuffer()), bytes);
+      assert.ok(size < MAX_STREAMED_RESPONSE_BYTES);
     }
   }
   assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
@@ -296,7 +299,7 @@ test('historical Veo operation status and downloads remain compatible', async ()
     : new Response('legacy-mp4', {headers:{'Content-Type':'video/mp4'}});
   const legacy = event('GET', 'operations/legacy');
   assert.equal(read(await status(legacy)).state, 'completed');
-  assert.equal(Buffer.from((await download(legacy)).body, 'base64').toString(), 'legacy-mp4');
+  assert.equal((await download(legacy)).body.toString(), 'legacy-mp4');
 });
 test('completed without supported video is not provider failure and does not invent output formats', async () => {
   reset(); await start(post(input));
@@ -331,6 +334,32 @@ test('confirmed failure and unknown status diagnostics never expose provider det
     assert.doesNotMatch(response.body, /mock-key|private prompt|YWJj/);
   }
 });
+test('streaming entrypoints preserve validation, pending and safe timeout errors', async () => {
+  for (const file of ['download-veo-video', 'download-veo-test']) {
+    reset();
+    const serve = require(`./netlify/functions/${file}.cjs`).default;
+    const url = `https://studio.test/.netlify/functions/${file}?operation=interactions/mock`;
+    assert.equal((await serve(new Request(url, {method:'POST'}))).status, 405);
+    assert.equal((await serve(new Request(url.replace('interactions/mock', 'invalid')))).status, 400);
+    delete process.env.GEMINI_API_KEY;
+    assert.equal((await serve(new Request(url))).status, 500);
+    process.env.GEMINI_API_KEY = 'mock-key';
+    payload = {status:'in_progress'};
+    assert.equal((await serve(new Request(url))).status, 409);
+    payload = url => url.endsWith('/interactions/mock')
+      ? Response.json(completed({uri:'files/mock:download'}))
+      : new Response(new ReadableStream({start(controller) {
+        controller.error(Object.assign(new Error('mock-key private detail'), {name:'TimeoutError'}));
+      }}), {headers:{'Content-Type':'video/mp4'}});
+    const response = await serve(new Request(url));
+    assert.equal(response.status, 502);
+    const message = await response.text();
+    assert.match(message, /duurde te lang/);
+    assert.doesNotMatch(message, /mock-key|private detail/);
+    assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
+  }
+});
+
 test('status and downloads do not need a second paid generation', async () => {
   reset(); await start(post(input));
   payload = completed({data:Buffer.from('fake-mp4').toString('base64')});

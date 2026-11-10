@@ -45,6 +45,7 @@ for(const ratio of ['9:16','16:9']) test(`${ratio}: selector, crop, start payloa
   els.aiVideoConfirmButton.onclick();await generating;
   await ctx.generateAIVideo();assert.equal(startCalls,1,'duplicate click during polling is ignored');
   assert.equal(requests[0].response_format.aspect_ratio,ratio);
+  assert.equal(requests[0].response_format.duration,'8s');
   assert.equal(requests[0].input[1].text,'Product showcase','Omni receives only the video textbox, without appended brand or product fields');
   assert.equal(requests[0].input[0].mime_type,'image/png');
   if(ratio==='9:16'){assert.ok(Math.abs(canvas.width/canvas.height-9/16)<.002);assert.ok(draw[1]>0,'center crop without padding');}

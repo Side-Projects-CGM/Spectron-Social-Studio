@@ -7,7 +7,7 @@ const delay = milliseconds => new Promise(resolve => setTimeout(resolve, millise
 const windows = process.platform === 'win32';
 const cliPath = windows ? path.join(process.env.APPDATA, 'npm/node_modules/netlify-cli/bin/run.js') : null;
 const child = spawn(windows ? process.execPath : 'netlify',
-  windows ? [cliPath, 'dev', '--offline', '--port', '8899'] : ['dev', '--offline', '--port', '8899'], {
+  windows ? [cliPath, 'dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002'] : ['dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002'], {
     env:{...process.env, GOOGLE_DEVELOPER_API_KEY:'mock-only-not-a-real-google-key',
       NODE_OPTIONS:`--require="${path.resolve('mock-video-network.cjs').split(path.sep).join('/')}"`},
     stdio:['ignore', 'pipe', 'pipe']
@@ -58,8 +58,18 @@ async function checkVideoFlow() {
   const status = await call('veo-video-status' + suffix);
   assert.equal(status.status, 200); assert.equal((await status.json()).state, 'completed');
   const video = await call('download-veo-video' + suffix);
-  assert.equal(video.status, 200); assert.match(video.headers.get('Content-Type'), /video\/mp4/);
+  assert.equal(video.status, 200, await video.clone().text()); assert.match(video.headers.get('Content-Type'), /video\/mp4/);
   assert.equal(await video.text(), 'mock-mp4');
+  for (const name of ['download-veo-video', 'download-veo-test']) {
+    for (const source of ['inline', 'uri']) {
+      const large = await call(`${name}?operation=interactions%2Flocal-mock-large-${source}`);
+      assert.equal(large.status, 200, large.ok ? '' : await large.clone().text());
+      assert.match(large.headers.get('Content-Type'), /video\/mp4/);
+      const bytes = Buffer.from(await large.arrayBuffer());
+      assert.equal(bytes.length, 8 * 1024 * 1024);
+      assert.ok(bytes.every(byte => byte === 7), `${name}: ${source} MP4 bytes must be unchanged`);
+    }
+  }
   const pending = await call('veo-video-status?operation=interactions%2Flocal-mock-pending');
   assert.equal((await pending.json()).state, 'pending');
   const notReady = await call('download-veo-video?operation=interactions%2Flocal-mock-pending');
@@ -69,7 +79,7 @@ async function checkVideoFlow() {
   const quota = await start('mock:quota'); assert.equal(quota.status, 429);
   assert.match((await quota.json()).error, /gebruikslimiet van Google/);
   const permission = await start('mock:permission'); assert.equal(permission.status, 502);
-  assert.match((await permission.json()).error, /not permitted/);
+  assert.match((await permission.json()).error, /geen toegang tot videogeneratie/);
 }
 async function stop() {
   if (windows) {
@@ -82,7 +92,7 @@ async function stop() {
 (async () => {
   try {
     await waitForServer(); await checkWorkflowAssets(); await checkVideoFlow();
-    console.log('PASS: Netlify Dev assets, fast background start, status, MP4 download, pending, filtering, quota and permission errors; all Google calls mocked');
+    console.log('PASS: Netlify Dev assets, fast background start, status, 8-second start, 8 MiB inline/URI MP4 downloads through both streaming routes, pending, filtering, quota and permission errors; all Google calls mocked');
   } finally { await stop(); }
 })().catch(error => {
   console.error(error.message);

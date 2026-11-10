@@ -2,7 +2,7 @@
 const { apiKey, reply, requestJSON, networkFailure } = require('../lib/omni-video.cjs');
 const { INTERACTION_ID_PATTERN } = require('../lib/video-response.cjs');
 const MODEL = 'gemini-omni-1.1-flash';
-const DURATION_SECONDS = 4;
+const DURATION_SECONDS = 8;
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const IMAGE_PATTERN = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
 

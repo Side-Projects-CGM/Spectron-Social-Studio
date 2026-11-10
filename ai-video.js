@@ -1,5 +1,5 @@
 'use strict';
-const DEFAULT_AI_VIDEO_PROMPT='Maak een professionele productpresentatie van vier seconden. Behoud het exacte uiterlijk, de kleuren, het merk en de verhoudingen van het product. Voeg subtiele natuurlijke beweging en een langzame filmische camerabeweging naar voren toe. Houd het product duidelijk in beeld. Voeg geen nieuwe tekst, logo’s, producten, mensen of voorwerpen toe.';
+const DEFAULT_AI_VIDEO_PROMPT='Maak een professionele productpresentatie van acht seconden. Behoud het exacte uiterlijk, de kleuren, het merk en de verhoudingen van het product. Voeg subtiele natuurlijke beweging en een langzame filmische camerabeweging naar voren toe. Houd het product duidelijk in beeld. Voeg geen nieuwe tekst, logo’s, producten, mensen of voorwerpen toe.';
 const MAX_VEO_IMAGE_BYTES=12*1024*1024;
 let aiVideoRunning=false,aiVideoPollTimer=0,aiVideoPollStarted=0,aiVideoUrl='',aiVideoPreviewUrl='';
 const AI_VIDEO_SERVER_ERROR='De videodienst gaf een onverwacht serverantwoord. Probeer het opnieuw of neem contact op met de ondersteuning.';

@@ -1,12 +1,13 @@
 const { trackedFetch } = require('../lib/usage.cjs');
 const omniVideo = require('../lib/omni-video.cjs');
+const { readVideoBytes, videoResult, serveDownload } = require('../lib/video-stream.cjs');
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const OPERATION_PATTERN = /^(?:operations\/[A-Za-z0-9._-]+|models\/[A-Za-z0-9._-]+\/operations\/[A-Za-z0-9._-]+)$/;
 const GOOGLE_HOSTS = new Set(['generativelanguage.googleapis.com','storage.googleapis.com']);
 function reply(statusCode, body) { return {statusCode, headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}; }
 function validVideoUri(value) { try { const url = new URL(value); return GOOGLE_HOSTS.has(url.hostname) && (url.hostname === 'storage.googleapis.com' || url.pathname.startsWith('/v1beta/')); } catch { return false; } }
 function extractVideoUri(result) { return result?.response?.generateVideoResponse?.generatedSamples?.[0]?.video?.uri || result?.response?.generatedVideos?.[0]?.video?.uri || ''; }
-exports.handler = async function handler(event, context, feature='veo-test') {
+async function download(event, context, feature='veo-test') {
   if (event.httpMethod !== 'GET') return reply(405,{error:'Methode niet toegestaan.'});
   const operation = event.queryStringParameters?.operation || '';
   if (operation.startsWith('interactions/')) return omniVideo.download(event, feature);
@@ -25,8 +26,11 @@ exports.handler = async function handler(event, context, feature='veo-test') {
     const videoResponse = await trackedFetch(event, {provider:'veo', feature, requestType:'download', operation}, videoUri,{headers:new URL(videoUri).hostname === 'generativelanguage.googleapis.com' ? {'x-goog-api-key':apiKey} : {},signal:AbortSignal.timeout(60000)});
     if (!videoResponse.ok) return reply(502,{error:'De gegenereerde video is niet beschikbaar of verlopen.'});
     if (!(videoResponse.headers?.get('Content-Type') || '').toLowerCase().startsWith('video/mp4')) return reply(502,{error:'Google gaf een ongeldig videoantwoord.'});
-    const bytes = Buffer.from(await videoResponse.arrayBuffer());
+    const bytes = await readVideoBytes(videoResponse);
     if (!bytes.length) return reply(502,{error:'Google gaf een lege video.'});
-    return {statusCode:200,isBase64Encoded:true,headers:{'Content-Type':'video/mp4','Content-Disposition':'attachment; filename="veo-test.mp4"','Cache-Control':'no-store'},body:bytes.toString('base64')};
-  } catch (error) { return reply(502,{error:error?.name === 'TimeoutError' ? 'Het downloaden van de video duurde te lang.' : 'Het downloaden van de video is mislukt.'}); }
-};
+    return videoResult(bytes, 'veo-test.mp4');
+  } catch (error) { return reply(502,{error:error instanceof RangeError ? 'Deze video is te groot om via de videodienst te downloaden. Neem contact op met de ondersteuning.' : error?.name === 'TimeoutError' ? 'Het downloaden van de video duurde te lang.' : 'Het downloaden van de video is mislukt.'}); }
+}
+
+exports.download = download;
+exports.default = request => serveDownload(request, download, 'veo-test');

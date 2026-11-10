@@ -6,11 +6,12 @@ const { trackedFetch } = require('./usage.cjs');
 const { INTERACTION_PATTERN, interactionVideo, interactionState } = require('./video-response.cjs');
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const REQUEST_TIMEOUT_MS = 20000;
-const MAX_DOWNLOAD_BYTES = 4.25 * 1024 * 1024;
+const { MAX_DOWNLOAD_BYTES, readVideoBytes, videoResult } = require('./video-stream.cjs');
 const MAX_FTYP_BYTES = 4096;
 const MIN_FTYP_BYTES = 16;
 const MP4_BRANDS = new Set(['isom', 'iso2', 'iso3', 'iso4', 'iso5', 'iso6', 'mp41', 'mp42', 'avc1']);
-const BASE64_PATTERN = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+// Avoid repeated multi-character groups: V8 can overflow its regexp stack on large videos.
+const BASE64_PATTERN = /^[A-Za-z0-9+/]*={0,2}$/;
 
 function apiKey() {
   return process.env.GOOGLE_DEVELOPER_API_KEY || process.env.GEMINI_API_KEY;
@@ -126,9 +127,7 @@ function oversizedVideo() {
 function videoReply(bytes) {
   if (!bytes.length) return reply(502, {error:'Google gaf een lege video.'});
   if (bytes.length > MAX_DOWNLOAD_BYTES) return oversizedVideo();
-  return {statusCode:200, isBase64Encoded:true, headers:{'Content-Type':'video/mp4',
-    'Content-Disposition':'attachment; filename="spectron-ai-video.mp4"', 'Cache-Control':'no-store'},
-    body:bytes.toString('base64')};
+  return videoResult(bytes);
 }
 /** Validate the first normal-size ftyp box, not the video's decodability. @param {Buffer} bytes */
 function hasMP4FileType(bytes) {
@@ -154,7 +153,7 @@ function downloadUrl(uri) {
 async function downloadVideo(event, feature, video) {
   if (typeof video.data === 'string') {
     if (video.data.length > Math.ceil(MAX_DOWNLOAD_BYTES / 3) * 4) return oversizedVideo();
-    if (!BASE64_PATTERN.test(video.data)) return reply(502, {error:'Google gaf ongeldige videogegevens.'});
+    if (video.data.length % 4 !== 0 || !BASE64_PATTERN.test(video.data)) return reply(502, {error:'Google gaf ongeldige videogegevens.'});
     return videoReply(Buffer.from(video.data, 'base64'));
   }
   const url = downloadUrl(video.uri);
@@ -168,7 +167,9 @@ async function downloadVideo(event, feature, video) {
   if (mime !== 'video/mp4' && mime !== 'video/unknown') {
     return reply(502, {error:'Google gaf een ongeldige videodownload.'});
   }
-  const bytes = Buffer.from(await response.arrayBuffer());
+  let bytes;
+  try { bytes = await readVideoBytes(response); }
+  catch (error) { if (error instanceof RangeError) return oversizedVideo(); throw error; }
   if (bytes.length > MAX_DOWNLOAD_BYTES) return oversizedVideo();
   if (mime === 'video/unknown' && !hasMP4FileType(bytes)) {
     return reply(502, {error:'Google gaf een ongeldige videodownload.'});
