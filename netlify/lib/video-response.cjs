@@ -1,5 +1,5 @@
-/** @typedef {{type:string, mime_type?:string, data?:string, uri?:string}} VideoContent */
-/** @typedef {{status?:string, error?:unknown, steps?:Array<{type:string, content?:VideoContent[]}>}} Interaction */
+/** @typedef {{type:string, mime_type?:string, data?:string, uri?:string, text?:string}} VideoContent */
+/** @typedef {{status?:string, error?:unknown, errors?:Array<{code?:string, message?:string}>, steps?:Array<{type:string, content?:VideoContent[]}>}} Interaction */
 
 const INTERACTION_PATTERN = /^interactions\/[A-Za-z0-9_-]{1,2048}$/;
 const INTERACTION_ID_PATTERN = /^[A-Za-z0-9_-]{1,2048}$/;

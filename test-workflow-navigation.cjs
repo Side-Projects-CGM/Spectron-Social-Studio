@@ -9,8 +9,8 @@ const source = page.slice(start, end);
 for (const id of ['workflowChooser','brandImageStep','advertisementFields','videoFields','workspacePlaceholder','workspaceOutput']) {
   assert.match(page, new RegExp(`id="${id}"`), `${id} is present`);
 }
-assert.match(page, /Maak een Social Advertentie/);
-assert.match(page, /Maak een Social Video/);
+assert.match(page, /Advertentie maken/);
+assert.match(page, /Video maken/);
 assert.match(page, /Staand[\s\S]*?9:16[\s\S]*?Liggend[\s\S]*?16:9/);
 assert.match(page, /id="workflowBack"[^>]*onclick="showWorkflowChooser\(\)"/);
 assert.match(page, /id="savedLibraryToggle"[^>]*aria-expanded="false"/);
@@ -21,7 +21,7 @@ assert.match(page, /id="posXSlider"/);
 assert.match(page, /id="posYSlider"/);
 assert.match(page, /id="textSlider"/);
 assert.match(page, /id="generateBtn"[^>]*onclick="generateAds\(\)"/);
-assert.match(page, /id="generateAIVideoBtn"[^>]*onclick="generateAIVideo\(\)"/);
+assert.match(page, /id="generateAIVideoBtn"[^>]*onclick="generateAIVideo\(true\)"/);
 function fragment(){ return {nodes:[], append(node){if(node?.nodes){for(const child of node.nodes){child.parentElement=null;}this.nodes.push(...node.nodes);node.nodes.length=0;}else{if(node?.parentElement){const parent=node.parentElement;parent.children.shift();node.parentElement=null;}this.nodes.push(node);}}}; }
 function element(id){return {id,hidden:true,value:'',textContent:'',style:{display:'none'},attrs:{},children:[],open:false,get firstChild(){return this.children[0]||null;},append(node){if(node?.nodes){for(const child of node.nodes){child.parentElement=this;}this.children.push(...node.nodes);node.nodes.length=0;}else{node.parentElement=this;this.children.push(node);}},replaceChildren(){for(const child of this.children)child.parentElement=null;this.children=[];},setAttribute(k,v){this.attrs[k]=v;}};}
 const ids=['resultsArea','outputMeta','downloadAllBtn','imgAdjust','advancedAdjustments','savedLibrary','workflowTitle','workflowChooser','workflowBack','brandImageStep','advertisementFields','videoFields','stepIndicator','workspacePlaceholder','workspaceOutput','outputType','workspaceHeading','chooseVideo','chooseAdvertisement','aiVideoAspect'];
@@ -30,7 +30,7 @@ els.brand=element('brand');els.promo=element('promo');els.brand.value='Bluey';el
 els.resultsArea.append({kind:'initial'});
 const radios=['9:16','16:9'].map(value=>({value,checked:false,closest(){return {classList:{toggle(){}}};}}));
 let notices=[];
-const context=vm.createContext({document:{getElementById:id=>els[id]||(els[id]=element(id)),createDocumentFragment:fragment,querySelectorAll:selector=>selector==='input[name="studioVideoFormat"]'?radios:[]},window:{},adGenerationInProgress:false,studioNotice:m=>notices.push(m),updateVideoMode(){},syncAIVideoImage(){}});
+const context=vm.createContext({document:{getElementById:id=>els[id]||(els[id]=element(id)),createDocumentFragment:fragment,querySelectorAll:selector=>selector==='input[name="studioVideoFormat"]'?radios:[]},window:{},selectedImage:'data:image/png;base64,TEST',adGenerationInProgress:false,studioNotice:m=>notices.push(m),updateVideoMode(){},syncAIVideoImage(){}});
 vm.runInContext(source,context);
 assert.equal(context.showStudioWorkflow('advertisement'),true);
 assert.equal(els.brandImageStep.hidden,false);
@@ -67,4 +67,14 @@ context.adGenerationInProgress=true;
 assert.equal(context.showWorkflowChooser(),false);
 assert.equal(context.showStudioWorkflow('advertisement'),false);
 assert.equal(notices.length,2);
-console.log('PASS initial chooser, ad/video selection, return navigation, retained form state/results, portrait/landscape state, busy guard, and existing feature controls');
+context.adGenerationInProgress=false;
+context.selectedImage=null;
+assert.equal(context.showWorkflowChooser(),true);
+assert.equal(els.brandImageStep.hidden,false,'photo preparation stays available before choosing output');
+assert.equal(els.chooseAdvertisement.disabled,true);
+assert.equal(context.showStudioWorkflow('advertisement'),false,'an image is required before content mode');
+context.selectedImage='data:image/png;base64,EDITED';
+context.syncContentModeAvailability();
+assert.equal(els.chooseAdvertisement.disabled,false);
+assert.equal(context.showStudioWorkflow('video'),true);
+console.log('PASS image-first prerequisite, initial chooser, ad/video selection, return navigation, retained form state/results, portrait/landscape state, busy guard, and existing feature controls');

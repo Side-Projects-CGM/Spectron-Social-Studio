@@ -1,42 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Usage | Spectron Social Studio</title>
+  <title>AI-gebruik | Spectron Social Studio</title>
   <link rel="stylesheet" href="/usage.css">
   <script src="/usage.js" defer></script>
 </head>
 <body>
   <div class="wrap">
-    <header><a class="brand" href="/"><img src="/spectron-logo.webp" alt="Spectron Toy Company"><span>Social Studio</span></a><a href="/">Back to studio <span aria-hidden="true">&nearr;</span></a></header>
+    <header><a class="brand" href="/"><img src="/spectron-logo.webp" alt="Spectron Toy Company"><span>Social Studio</span></a><a href="/">Terug naar de studio <span aria-hidden="true">&nearr;</span></a></header>
     <main>
-      <div class="page-heading"><div><p class="eyebrow">WORKSPACE ACTIVITY</p><h1>AI usage</h1><p class="intro">Gemini tokens and Veo video activity, in one place.</p></div><div class="actions"><button id="refresh" hidden>Refresh</button><button id="logout" class="secondary" hidden>Lock dashboard</button></div></div>
+      <div class="page-heading"><div><p class="eyebrow">ACTIVITEIT IN DE WERKRUIMTE</p><h1>AI-gebruik</h1><p class="intro">Gemini-tokens en Veo-videoactiviteit op één plek.</p></div><div class="actions"><button id="refresh" hidden>Vernieuwen</button><button id="logout" class="secondary" hidden>Dashboard vergrendelen</button></div></div>
       <section id="login" class="login panel" aria-labelledby="loginTitle">
-        <p class="eyebrow">PRIVATE DASHBOARD</p><h2 id="loginTitle">View your usage</h2><p>Enter the dashboard password to access this workspace’s activity.</p>
-        <form id="loginForm"><label for="password">Dashboard password</label><div class="password-row"><input id="password" type="password" autocomplete="current-password" required maxlength="512"><button id="unlock" type="submit">Unlock</button></div></form>
+        <p class="eyebrow">AFGESCHERMD DASHBOARD</p><h2 id="loginTitle">Bekijk je gebruik</h2><p>Voer het dashboardwachtwoord in om de activiteit in deze werkruimte te bekijken.</p>
+        <form id="loginForm"><label for="password">Dashboardwachtwoord</label><div class="password-row"><input id="password" type="password" autocomplete="current-password" required maxlength="512"><button id="unlock" type="submit">Ontgrendelen</button></div></form>
       </section>
       <p id="status" role="status" aria-live="polite"></p>
       <div id="dashboard" hidden>
         <div class="tracking"><span id="trackingSince"></span><span id="updated"></span></div>
         <p id="quality" class="notice" hidden></p>
-        <section aria-labelledby="geminiTitle"><div class="section-heading"><h2 id="geminiTitle">Gemini <span>Text &amp; images</span></h2><p>Reported tokens &middot; all time</p></div><div class="metrics">
-          <article class="metric accent"><h3>Total tokens</h3><strong id="totalTokens">&mdash;</strong><p>Provider-reported total, including thinking</p></article>
-          <article class="metric"><h3>Input / output tokens</h3><strong id="inputOutput">&mdash;</strong><p id="extraTokens">Thinking and cache details</p></article>
-          <article class="metric"><h3>Generation requests</h3><strong id="geminiAttempts">&mdash;</strong><p id="geminiOutcomes"></p></article>
+        <section aria-labelledby="geminiTitle"><div class="section-heading"><h2 id="geminiTitle">Gemini <span>Tekst &amp; afbeeldingen</span></h2><p>Gerapporteerde tokens &middot; gehele periode</p></div><div class="metrics">
+          <article class="metric accent"><h3>Totaal aantal tokens</h3><strong id="totalTokens">&mdash;</strong><p>Totaal gerapporteerd door de aanbieder, inclusief denktokens</p></article>
+          <article class="metric"><h3>Invoer- / uitvoertokens</h3><strong id="inputOutput">&mdash;</strong><p id="extraTokens">Details over denktokens en cache</p></article>
+          <article class="metric"><h3>Generatieaanvragen</h3><strong id="geminiAttempts">&mdash;</strong><p id="geminiOutcomes"></p></article>
         </div></section>
-        <section aria-labelledby="veoTitle"><div class="section-heading"><h2 id="veoTitle">Veo <span>Video generation</span></h2><p>Activity &middot; all time</p></div><div class="metrics">
-          <article class="metric"><h3>Generation attempts</h3><strong id="veoAttempts">&mdash;</strong><p id="veoSubmitted"></p></article>
-          <article class="metric"><h3>Completed generations</h3><strong id="veoCompleted">&mdash;</strong><p id="veoOutcomes"></p></article>
-          <article class="metric"><h3>Estimated output seconds</h3><strong id="veoSeconds">&mdash;</strong><p id="veoDuration"></p></article>
-        </div><p class="footnote">Veo credits and billed usage: not reported by the API. Output seconds are estimated from requested duration and returned video count; they are not a billing total. Status checks and downloads do not count as generations.</p><p id="veoCalls" class="footnote"></p></section>
-        <section class="panel" aria-labelledby="activityTitle"><div class="section-heading"><div><h2 id="activityTitle">Activity over time</h2><p>Dates in Africa/Johannesburg &middot; weeks begin Monday</p></div><label class="period-label" for="period">Group by <select id="period"><option value="days">Day</option><option value="weeks">Week</option></select></label></div><div class="table-scroll"><table><caption class="sr-only">Usage by day or week</caption><thead><tr><th scope="col">Period</th><th scope="col">Gemini requests</th><th scope="col">Reported tokens</th><th scope="col">Veo attempts</th><th scope="col">Veo completed</th><th scope="col">Est. video seconds</th></tr></thead><tbody id="periodRows"></tbody></table></div></section>
-        <section class="panel" aria-labelledby="featuresTitle"><h2 id="featuresTitle">Usage by feature</h2><div class="table-scroll"><table><caption class="sr-only">Separate Gemini and Veo metrics per feature</caption><thead><tr><th scope="col">Feature</th><th scope="col">Gemini requests</th><th scope="col">Reported tokens</th><th scope="col">Veo attempts</th><th scope="col">Veo completed</th><th scope="col">Est. video seconds</th></tr></thead><tbody id="featureRows"></tbody></table></div></section>
-        <section class="panel" aria-labelledby="recentTitle"><h2 id="recentTitle">Recent API activity</h2><p>Latest 50 calls. A single text request can produce several ad variants.</p><div class="table-scroll"><table><caption class="sr-only">Most recent API calls</caption><thead><tr><th scope="col">Time</th><th scope="col">Feature</th><th scope="col">Call</th><th scope="col">Outcome</th><th scope="col">Reported tokens</th></tr></thead><tbody id="recentRows"></tbody></table></div></section>
-        <p class="footnote">Totals cover calls recorded through this app since tracking began. Earlier activity and usage from other apps are not included. Local fallback text and browser-rendered videos use no API tokens. Records may take up to a minute to appear. Storage failures can leave gaps; this dashboard is not a billing ledger.</p>
+        <section aria-labelledby="veoTitle"><div class="section-heading"><h2 id="veoTitle">Veo <span>Videogeneratie</span></h2><p>Activiteit &middot; gehele periode</p></div><div class="metrics">
+          <article class="metric"><h3>Generatiepogingen</h3><strong id="veoAttempts">&mdash;</strong><p id="veoSubmitted"></p></article>
+          <article class="metric"><h3>Voltooide generaties</h3><strong id="veoCompleted">&mdash;</strong><p id="veoOutcomes"></p></article>
+          <article class="metric"><h3>Geschatte videoseconden</h3><strong id="veoSeconds">&mdash;</strong><p id="veoDuration"></p></article>
+        </div><p class="footnote">Veo-tegoed en gefactureerd gebruik worden niet door de API gerapporteerd. Videoseconden worden geschat op basis van de aangevraagde duur en het aantal ontvangen video’s; dit is geen factuurtotaal. Statuscontroles en downloads tellen niet als generaties.</p><p id="veoCalls" class="footnote"></p></section>
+        <section class="panel" aria-labelledby="activityTitle"><div class="section-heading"><div><h2 id="activityTitle">Activiteit door de tijd heen</h2><p>Datums in de tijdzone Africa/Johannesburg &middot; weken beginnen op maandag</p></div><label class="period-label" for="period">Groeperen op <select id="period"><option value="days">Dag</option><option value="weeks">Week</option></select></label></div><div class="table-scroll"><table><caption class="sr-only">Gebruik per dag of week</caption><thead><tr><th scope="col">Periode</th><th scope="col">Gemini-aanvragen</th><th scope="col">Gerapporteerde tokens</th><th scope="col">Veo-pogingen</th><th scope="col">Veo voltooid</th><th scope="col">Geschatte videoseconden</th></tr></thead><tbody id="periodRows"></tbody></table></div></section>
+        <section class="panel" aria-labelledby="featuresTitle"><h2 id="featuresTitle">Gebruik per functie</h2><div class="table-scroll"><table><caption class="sr-only">Afzonderlijke Gemini- en Veo-cijfers per functie</caption><thead><tr><th scope="col">Functie</th><th scope="col">Gemini-aanvragen</th><th scope="col">Gerapporteerde tokens</th><th scope="col">Veo-pogingen</th><th scope="col">Veo voltooid</th><th scope="col">Geschatte videoseconden</th></tr></thead><tbody id="featureRows"></tbody></table></div></section>
+        <section class="panel" aria-labelledby="recentTitle"><h2 id="recentTitle">Recente API-activiteit</h2><p>De laatste 50 aanroepen. Eén tekstaanvraag kan meerdere advertentievarianten opleveren.</p><div class="table-scroll"><table><caption class="sr-only">Meest recente API-aanroepen</caption><thead><tr><th scope="col">Tijd</th><th scope="col">Functie</th><th scope="col">Aanroep</th><th scope="col">Resultaat</th><th scope="col">Gerapporteerde tokens</th></tr></thead><tbody id="recentRows"></tbody></table></div></section>
+        <p class="footnote">De totalen omvatten de aanroepen die sinds het begin van de registratie via deze app zijn vastgelegd. Eerdere activiteit en gebruik vanuit andere apps zijn niet inbegrepen. Lokale reservetekst en video’s die in de browser worden gemaakt, gebruiken geen API-tokens. Het kan tot een minuut duren voordat gegevens verschijnen. Opslagfouten kunnen hiaten veroorzaken; dit dashboard is geen factureringsoverzicht.</p>
       </div>
     </main>
-    <footer>SPECTRON SOCIAL STUDIO <span>Usage visibility, without changing your creative workflow.</span></footer>
+    <footer>SPECTRON SOCIAL STUDIO <span>Inzicht in je gebruik, zonder je creatieve werkwijze te veranderen.</span></footer>
   </div>
 </body>
 </html>

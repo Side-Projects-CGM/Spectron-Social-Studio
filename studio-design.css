@@ -1,0 +1,689 @@
+/* Application theme. Advertisement artwork keeps its own export palette. */
+:root{--ui-blue:#0000ff;--ui-ink:#202127;--ui-muted:#747680;--ui-line:#e4e5eb;--ui-canvas:#f5f5f8;--ui-selected:#eeeeff;--ui-font:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+body{background:#f2f2f5;color:var(--ui-ink);font-family:var(--ui-font);}
+.wrap{max-width:none!important;padding:0!important;gap:0!important;}
+.masthead{min-height:76px!important;padding:0 28px!important;border:0!important;border-bottom:1px solid var(--ui-line)!important;border-radius:0!important;background:#fff!important;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:nowrap;}
+.app-identity{display:flex;align-items:center;gap:20px;white-space:nowrap;}
+.oomagent-wordmark{font-size:25px;font-weight:750;letter-spacing:-1.3px;color:var(--ui-blue);}
+.identity-rule{height:24px;width:1px;background:var(--ui-line);}
+.app-name{font-size:14px;font-weight:600;letter-spacing:-.25px;}
+.app-name small{display:block;font-size:10px;font-weight:400;color:var(--ui-muted);margin-top:3px;letter-spacing:0;}
+.app-modes{display:flex;gap:3px;padding:4px;background:#f2f2f6;border:1px solid #eaeaf0;border-radius:10px;}
+.app-mode{padding:8px 20px;border:0;border-radius:7px;background:transparent;font:500 12px var(--ui-font);color:#72737e;cursor:pointer;}
+.app-mode:hover{color:var(--ui-ink);background:#e8e8ef;}
+body:has(#chooseAdvertisement[aria-pressed="true"]) .app-mode[data-mode="advertisement"],body:has(#chooseVideo[aria-pressed="true"]) .app-mode[data-mode="video"]{background:#fff;color:var(--ui-blue);box-shadow:0 1px 4px #20212714;}
+.client-identity{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--ui-muted);}
+.client-identity img{width:58px;height:36px;object-fit:contain;}
+.studio-shell{grid-template-columns:316px minmax(0,1fr)!important;gap:0!important;background:var(--ui-canvas);}
+.workflow-panel{border:0!important;border-right:1px solid var(--ui-line)!important;border-radius:0!important;box-shadow:none!important;background:#fbfbfd!important;scrollbar-color:#d4d4de transparent!important;}
+.workflow-panel .panel-head{min-height:64px;padding:18px 22px!important;background:#fbfbfd!important;color:var(--ui-ink)!important;border-radius:0!important;border-bottom:1px solid var(--ui-line);font:600 14px var(--ui-font);}
+.workflow-panel .workflow-back{padding:6px 9px;font:500 10px var(--ui-font);background:#fff;color:var(--ui-muted);border:1px solid var(--ui-line)!important;border-radius:6px;}
+.workflow-chooser{gap:12px!important;padding:22px!important;}
+.workflow-choice{display:flex;align-items:center;gap:13px;text-align:left;min-height:88px!important;padding:16px!important;background:#fff!important;color:var(--ui-ink)!important;border:1px solid var(--ui-line)!important;border-radius:12px!important;box-shadow:0 2px 5px #16162804!important;font:600 12px var(--ui-font)!important;transition:border-color .16s,box-shadow .16s,transform .16s;}
+.workflow-choice:hover{background:#fff!important;border-color:var(--ui-blue)!important;box-shadow:0 3px 12px #0000ff0c!important;transform:translateY(-1px);}
+.choice-icon{display:grid;place-items:center;width:38px;height:38px;flex:none;border:1px solid #e1e1ff;border-radius:10px;background:#f4f4ff;color:var(--ui-blue);}
+.choice-icon svg{width:20px;height:20px;}
+.choice-text{display:block;line-height:1.5;}
+.choice-text small{display:block;font:400 11px/1.5 var(--ui-font);color:var(--ui-muted);margin-top:3px;}
+.chooser-help{margin:12px 0 0;padding-top:20px;border-top:1px solid var(--ui-line);}
+.chooser-help h2{font:600 11px var(--ui-font);color:#80818b;letter-spacing:.05em;text-transform:uppercase;margin:0 0 18px;}
+.chooser-help ol{list-style:none;margin:0;padding:0;counter-reset:steps;}
+.chooser-help li{counter-increment:steps;display:flex;gap:12px;align-items:center;font-size:12px;color:#757783;margin-bottom:17px;}
+.chooser-help li:before{content:counter(steps);display:grid;place-items:center;width:22px;height:22px;border:1px solid var(--ui-line);border-radius:50%;color:#9c9da7;font-size:10px;background:#fff;}
+.workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,.workflow-panel .workflow-primary-action{padding:15px 22px!important;background:transparent!important;border-bottom:1px solid #ececf1!important;}
+.workflow-panel .field-num{font:600 9px var(--ui-font);letter-spacing:.1em;color:#92939e!important;margin-bottom:8px!important;}
+.workflow-panel .field label.title,.workflow-panel .img-field .title{font:600 12px var(--ui-font)!important;color:var(--ui-ink)!important;margin-bottom:10px!important;letter-spacing:0;}
+.workflow-panel .hint,.workflow-panel .img-hint{font:400 11px/1.6 var(--ui-font)!important;color:var(--ui-muted)!important;margin-top:9px!important;}
+.workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea{min-height:39px!important;border:1px solid #dedfe7!important;border-radius:8px!important;background:#fff!important;color:#373943!important;font:400 12px var(--ui-font)!important;padding:9px 11px!important;box-shadow:0 1px 2px #20212703!important;}
+.workflow-panel select{padding-right:24px!important;}
+.workflow-panel textarea{resize:vertical;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover{min-height:37px!important;padding:8px 10px!important;border:1px solid #dedfe7!important;border-radius:8px!important;background:#fff!important;color:#4e505b!important;font:500 11px var(--ui-font)!important;}
+.workflow-panel .upload-btn:hover{border-color:#bdbdce!important;background:#f7f7fc!important;}
+.workflow-panel .library-upload{width:calc(100% - 44px);margin:12px 22px!important;}
+.workflow-panel .generate-btn,.workflow-panel .generate-btn:not(:disabled):hover{min-height:42px!important;background:var(--ui-blue)!important;color:#fff!important;border-radius:9px!important;font:600 12px var(--ui-font)!important;box-shadow:0 3px 8px #0000ff18;letter-spacing:0;}
+.workflow-panel .generate-btn:not(:disabled):hover{background:#2020dc!important;}
+.workflow-panel .generate-btn:disabled{background:#e7e7f2!important;color:#9898af!important;box-shadow:none;opacity:1;}
+.workflow-panel .chip-opt{border:1px solid var(--ui-line)!important;border-radius:7px!important;background:#fff!important;font:400 11px var(--ui-font)!important;color:#656773!important;min-height:30px!important;}
+.workflow-panel .chip-opt.on{background:var(--ui-selected)!important;border-color:#c8c8ff!important;color:var(--ui-blue)!important;outline:none!important;}
+.workflow-panel .img-thumb{border-radius:9px;}
+.img-thumb.selected{box-shadow:0 0 0 2px var(--ui-blue)!important;}
+.img-thumb.selected::after,.video-format-choice.selected::after{background:var(--ui-blue)!important;}
+.workspace-canvas{border-radius:0!important;background:var(--ui-canvas)!important;position:relative;}
+.canvas-toolbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;min-height:64px;padding:0 28px;border-bottom:1px solid var(--ui-line);background:#f5f5f8f2;backdrop-filter:blur(18px);font-size:12px;color:#7b7d87;flex-shrink:0;}
+.canvas-toolbar strong{font-weight:500;color:#434550;}
+.canvas-status{display:flex;align-items:center;gap:6px;font-size:10px;background:#fff;border:1px solid var(--ui-line);padding:5px 9px;border-radius:6px;}
+.canvas-status:before{content:"";width:5px;height:5px;background:#b6b6c4;border-radius:50%;}
+.workspace-placeholder{inset:64px 0 45px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:0;color:var(--ui-ink);}
+.empty-studio-icon{width:62px;height:62px;display:grid;place-items:center;border:1px solid #e5e5f1;border-radius:17px;background:#fff;box-shadow:0 5px 18px #25254a05;color:var(--ui-blue);margin-bottom:24px;}
+.empty-studio-icon svg{width:30px;height:30px;}
+.workspace-placeholder h1{font:600 27px/1.2 var(--ui-font);letter-spacing:-.9px;color:#292b34;margin:0 0 12px;}
+.workspace-placeholder p{max-width:350px;font:400 13px/1.8 var(--ui-font);color:#8b8c98;margin:0;}
+.workspace-placeholder .empty-formats{display:flex;gap:7px;margin-top:27px;}
+.workspace-placeholder .empty-formats span{padding:5px 9px;border:1px solid #e3e3ec;border-radius:5px;background:transparent;font:400 10px var(--ui-font);color:#a2a2af;}
+.workspace-image-preview{inset:84px 24px 60px!important;}
+.workspace-image-preview img{border-radius:12px;box-shadow:0 8px 35px #2021270a;}
+.output#workspaceOutput{padding:26px!important;min-height:calc(100% - 64px)!important;color:var(--ui-ink);}
+.output-head{border-color:var(--ui-line);}
+.output-head h2{font:600 20px var(--ui-font)!important;letter-spacing:-.5px; color:var(--ui-ink)!important;}
+.output-head span{font:400 11px var(--ui-font)!important;color:var(--ui-muted);}
+.output#workspaceOutput>.output-head+p{color:var(--ui-muted)!important;font:400 11px/1.6 var(--ui-font)!important;}
+.workspace-details>summary{border:1px solid var(--ui-line)!important;background:#fff!important;color:#666874;font:500 11px var(--ui-font)!important;border-radius:8px;}
+.card{border:1px solid var(--ui-line)!important;border-radius:12px;box-shadow:0 3px 12px #20212705!important;overflow:hidden;}
+.card-head{background:#fff!important;color:var(--ui-ink)!important;border-bottom:1px solid var(--ui-line);}
+.card-dl-btn,.dl-all-btn,.reset-btn,.copy-text-icon{border-color:var(--ui-line)!important;background:#fff!important;color:#575965!important;font-family:var(--ui-font)!important;border-radius:7px;}
+.card-dl-btn:hover,.copy-text-icon:hover{background:var(--ui-selected)!important;color:var(--ui-blue)!important;}
+.img-adjust{background:#fff!important;border:1px solid var(--ui-line)!important;border-radius:10px!important;box-shadow:none!important;}
+input[type=range]{accent-color:var(--ui-blue);}
+.video-format-choice>span{border-radius:8px!important;border-color:var(--ui-line)!important;color:var(--ui-ink);font:400 11px var(--ui-font)!important;}
+.video-format-choice.selected>span{outline-color:var(--ui-blue)!important;background:var(--ui-selected);}
+.footer-note{padding:12px 26px!important;background:var(--ui-canvas);color:#9697a1!important;border:0!important;border-top:1px solid var(--ui-line)!important;font:400 9px/1.5 var(--ui-font)!important;gap:18px!important;}
+#savedLibrary{border-top:1px solid var(--ui-line);}
+#studioStatus{color:var(--ui-ink);background:#fff;border:1px solid var(--ui-line);font-size:12px;}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--ui-blue)!important;outline-offset:3px!important;}
+@media(min-width:601px){.workflow-panel{position:relative!important;top:0!important;}.footer-note{margin-top:auto;}.studio-shell{grid-template-columns:316px minmax(0,1fr)!important;}}
+@media(min-width:1600px){.studio-shell{grid-template-columns:340px minmax(0,1fr)!important;}.workflow-panel .field,.workflow-panel .img-field{padding:18px 26px!important;}}
+@media(max-width:1000px){.masthead{padding:0 18px!important;}.app-identity{gap:12px;}.oomagent-wordmark{font-size:22px;}.client-identity>span{display:none;}.app-mode{padding:8px 12px;}.studio-shell{grid-template-columns:290px minmax(0,1fr)!important;}.workflow-panel .field,.workflow-panel .img-field{padding:14px 18px!important;}}
+@media(max-width:760px){.client-identity{display:none;}.app-name small{display:none;}.app-identity{gap:10px;}.masthead{gap:12px;}.app-mode{padding:8px 10px;}.studio-shell{grid-template-columns:270px minmax(0,1fr)!important;}.workspace-placeholder h1{font-size:22px;}.canvas-toolbar{padding:0 18px;}}
+@media(max-width:600px){.wrap{display:flex!important;flex-direction:column;}.masthead{flex-wrap:wrap;min-height:112px!important;padding:14px 18px!important;gap:13px;}.app-identity{flex:1;}.app-modes{width:100%;}.app-mode{flex:1;padding:8px;}.studio-shell{grid-template-columns:minmax(0,1fr)!important;}.workflow-panel{border-right:0!important;border-bottom:1px solid var(--ui-line)!important;}.workflow-chooser{grid-template-columns:1fr 1fr;padding:16px!important;gap:10px!important;}.workflow-choice{min-height:94px!important;display:block;padding:12px!important;}.choice-icon{width:30px;height:30px;margin-bottom:8px;}.chooser-help{grid-column:1/-1;margin:4px 0 0;padding-top:16px;}.chooser-help ol{display:flex;gap:12px;justify-content:space-between;}.chooser-help li{gap:6px;font-size:10px;margin-bottom:0;}.chooser-help h2{margin-bottom:12px;}.workspace-canvas{min-height:400px!important;}.canvas-toolbar{min-height:50px;}.workspace-placeholder{inset:50px 0 42px!important;padding:25px;}.workspace-placeholder h1{font-size:23px;}.output#workspaceOutput{padding:16px!important;}.footer-note{margin-top:auto!important;padding:10px 16px!important;flex-direction:row!important;}.footer-note span:last-child{display:none;}}
+@media(prefers-reduced-motion:reduce){.workflow-choice{transition:none!important;}.workflow-choice:hover{transform:none;}}
+
+/* Dark graphite workspace, white controls and Oomagent-blue accents. */
+:root{--ui-canvas:#45474f;--ui-selected:#e9e9ff;}
+body{background:#45474f;}
+.masthead{box-shadow:0 1px 10px #181a2510;}
+.oomagent-wordmark{color:var(--ui-blue);}
+.app-modes{border-radius:16px!important;background:#ededf3;}
+.app-mode{border-radius:12px!important;}
+body:not(:has(#chooseAdvertisement[aria-pressed="true"])):not(:has(#chooseVideo[aria-pressed="true"])) .app-mode:first-child{background:var(--ui-blue);color:#fff;box-shadow:0 2px 7px #0000ff25;}
+body:has(#chooseAdvertisement[aria-pressed="true"]) .app-mode[data-mode="advertisement"],body:has(#chooseVideo[aria-pressed="true"]) .app-mode[data-mode="video"]{background:var(--ui-blue);color:#fff;box-shadow:0 2px 7px #0000ff25;}
+.workflow-panel{background:#e9eaf0!important;border-color:#d9dbe3!important;}
+.workflow-panel .panel-head{background:#e9eaf0!important;border-color:#d5d7e0;gap:8px;}
+#workflowTitle{font-size:13px;white-space:nowrap;}
+#stepIndicator{font:500 9px var(--ui-font);white-space:nowrap;color:#76788b;letter-spacing:0;}
+.workflow-panel .workflow-back{font-size:0!important;min-width:28px;height:28px;padding:0!important;border-radius:9px!important;color:var(--ui-blue);}
+.workflow-back::before{content:"←";font:500 16px var(--ui-font);}
+.workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,.workflow-panel .workflow-primary-action{border-color:#d9dbe3!important;}
+.workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea{border:1px solid #d6d8e3!important;border-radius:12px!important;box-shadow:0 2px 5px #26284005!important;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover{border-radius:13px!important;border-color:#d3d5e3!important;color:#262680!important;box-shadow:0 2px 4px #26284006;}
+.workflow-panel .upload-btn:hover{background:#f3f3ff!important;border-color:#a8a8ec!important;}
+.workflow-panel .generate-btn{border-radius:15px!important;min-height:45px!important;box-shadow:0 4px 12px #0000ff24;}
+.workflow-panel .generate-btn:disabled{box-shadow:none;}
+.workflow-choice{border-radius:18px!important;border-color:#d8dae4!important;box-shadow:0 3px 12px #20212705!important;}
+.choice-icon{background:#e9e9ff;border-color:#d9d9ff;border-radius:12px!important;}
+.choice-text{color:#272743;}
+.workflow-panel .chip-opt{border-radius:10px!important;border-color:#d2d5e0!important;color:#626478!important;}
+.workflow-panel .chip-opt.on{background:var(--ui-blue)!important;color:#fff!important;border-color:var(--ui-blue)!important;box-shadow:0 2px 5px #0000ff18;}
+.chooser-help{border-color:#d3d6e0;}
+.chooser-help h2{color:#6b6e82;}
+.chooser-help li:before{border-radius:50%!important;border-color:#c7c7eb;background:#f4f4ff;color:var(--ui-blue);}
+.canvas-toolbar{background:#45474ff2;border-color:#ffffff12;color:#c0c1cc;}
+.canvas-toolbar strong{color:#e4e5ee;}
+.canvas-status{background:#fff;color:#696b7b;border:0;border-radius:9px!important;box-shadow:0 2px 8px #00000012;}
+.canvas-status:before{background:var(--ui-blue);border-radius:50%!important;}
+.workspace-placeholder h1{color:#f6f6fb;}
+.workspace-placeholder p{color:#bec0cd;}
+.empty-studio-icon{background:#fdfdff;border:0;border-radius:20px!important;box-shadow:0 8px 25px #15162420;color:var(--ui-blue);}
+.workspace-placeholder .empty-formats span{background:#565963;border:1px solid #686b76;color:#d1d3de;border-radius:8px!important;}
+.workspace-image-preview img{max-height:min(720px,calc(100dvh - 210px));max-width:min(860px,calc(100% - 40px));border-radius:17px!important;box-shadow:0 15px 55px #10121d35;}
+.output-head h2{color:#f3f3fa!important;}
+.output-head span,.output#workspaceOutput>.output-head+p{color:#bfc1d0!important;}
+.output-head{border-color:#ffffff1c;}
+.card-dl-btn,.dl-all-btn,.reset-btn,.copy-text-icon{border-radius:11px!important;color:#28288a!important;box-shadow:0 2px 6px #1516240a;}
+.workspace-details>summary{border-radius:12px!important;color:#29297c;box-shadow:0 2px 8px #1516240c;}
+.video-format-choice>span{border-radius:12px!important;}
+.video-format-choice.selected>span{background:var(--ui-selected);}
+.footer-note{background:#45474f;color:#b0b2c0!important;border-color:#ffffff12!important;}
+#savedLibrary{border-color:#ffffff1c;}
+#savedAdsPanel>p{color:#c7c9d5;}
+
+/* Larger asset browser with more room for product photography. */
+@media(min-width:1001px){.studio-shell{grid-template-columns:400px minmax(0,1fr)!important;}}
+@media(min-width:1600px){.studio-shell{grid-template-columns:430px minmax(0,1fr)!important;}}
+@media(min-width:761px) and (max-width:1000px){.studio-shell{grid-template-columns:340px minmax(0,1fr)!important;}}
+.workflow-panel .img-gallery{gap:12px!important;padding:6px 3px 12px!important;}
+.workflow-panel .img-thumb{flex-basis:182px!important;min-width:182px;aspect-ratio:4/3;border-radius:13px!important;}
+.workflow-panel .gallery-arrow{width:32px;height:32px;box-shadow:0 3px 10px #20212716;}
+@media(max-width:760px){.workflow-panel .img-thumb{flex-basis:150px!important;min-width:150px;}}
+
+/* Reference direction: deep graphite, glass panels and a cobalt-blue glow. */
+:root{--ui-canvas:#080b16;--ui-line:#252d43;--ui-ink:#f2f4ff;--ui-muted:#a0aac3;--ui-selected:#e9e9ff;}
+body{background:#05070d;color:#f2f4ff;color-scheme:dark;}
+.masthead{background:#0a0d16f5!important;border-bottom-color:#232a3d!important;box-shadow:0 8px 30px #00000024;}
+.oomagent-wordmark{color:#fff;text-shadow:0 0 24px #5555ff35;}
+.oomagent-wordmark::after{content:"";display:inline-block;width:6px;height:6px;margin-left:3px;border-radius:50%!important;background:#4444ff;box-shadow:0 0 14px #5555ff;}
+.identity-rule{background:#2a3042;}
+.app-name{color:#eef0ff;}.app-name small{color:#919ab2;}
+.app-modes{background:#171c2b;border-color:#293049;box-shadow:inset 0 1px 0 #ffffff04;}
+.app-mode{color:#a2abc0;}.app-mode:hover{background:#232a40;color:#fff;}
+body:not(:has(#chooseAdvertisement[aria-pressed="true"])):not(:has(#chooseVideo[aria-pressed="true"])) .app-mode:first-child,
+body:has(#chooseAdvertisement[aria-pressed="true"]) .app-mode[data-mode="advertisement"],body:has(#chooseVideo[aria-pressed="true"]) .app-mode[data-mode="video"]{background:var(--ui-blue);color:#fff;box-shadow:0 0 20px #3333ff38,inset 0 1px 0 #ffffff25;}
+.client-identity{color:#929cb7;}.client-identity img{background:#fff;padding:3px;border-radius:7px!important;}
+.studio-shell{background:#080b16;}
+.workflow-panel{background:linear-gradient(155deg,#151b2c,#101421 55%,#11182c)!important;border-right-color:#2a3148!important;scrollbar-color:#394264 transparent!important;}
+.workflow-panel .panel-head{background:#151b2cf5!important;color:#edf1ff!important;border-bottom-color:#30384f;backdrop-filter:blur(18px);}
+#workflowTitle{color:#f0f2ff;}#stepIndicator{color:#8b9bbc;}
+.workflow-panel .workflow-back{background:#f6f7ff;color:#0000ff;border-color:#f6f7ff!important;}
+.workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,.workflow-panel .workflow-primary-action{background:transparent!important;border-color:#293148!important;}
+.workflow-panel .field-num{color:#8f9ac1!important;}
+.workflow-panel .field label.title,.workflow-panel .img-field .title{color:#edf0ff!important;}
+.workflow-panel .hint,.workflow-panel .img-hint{color:#a0abc5!important;}
+.workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea{color-scheme:dark;background:#20283e!important;border-color:#36415d!important;color:#f3f4ff!important;box-shadow:inset 0 1px 0 #ffffff04!important;}
+.workflow-panel input::placeholder,.workflow-panel textarea::placeholder{color:#929ebd;}
+.workflow-panel select:focus,.workflow-panel input[type=text]:focus,.workflow-panel textarea:focus{border-color:#7777ff!important;box-shadow:0 0 0 3px #5555ff20!important;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover{background:#f9faff!important;border-color:#f9faff!important;color:#20206b!important;box-shadow:0 3px 12px #00000014;}
+.workflow-panel .upload-btn:hover{background:#e5e6ff!important;border-color:#bcbcff!important;}
+.workflow-panel .generate-btn,.workflow-panel .generate-btn:not(:disabled):hover{background:var(--ui-blue)!important;color:#fff!important;box-shadow:0 5px 22px #2020ff40,inset 0 1px 0 #ffffff25;}
+.workflow-panel .generate-btn:not(:disabled):hover{background:#2929ff!important;box-shadow:0 5px 25px #3333ff60;}
+.workflow-panel .generate-btn:disabled{background:#2d3450!important;color:#929cbc!important;box-shadow:none;}
+.workflow-panel .chip-opt{background:#20283e!important;color:#c1c9e0!important;border-color:#39435e!important;}
+.workflow-panel .chip-opt.on{background:#0000ff!important;color:#fff!important;border-color:#6262ff!important;box-shadow:0 0 12px #3333ff24;}
+.workflow-panel .chip-opt:hover{background:#303b58!important;color:#fff!important;}
+.workflow-panel .workflow-choice{background:#f9faff!important;color:#191d36!important;border-color:#fff!important;box-shadow:0 6px 24px #00000020!important;}
+.workflow-panel .workflow-choice:hover{background:#edeeff!important;border-color:#9393ff!important;box-shadow:0 4px 28px #3333ff25!important;}
+.choice-icon{background:#e7e8ff;color:#0000ff;}.choice-text{color:#171d36;}.choice-text small{color:#72798d;}
+.chooser-help{border-color:#303851;}.chooser-help h2{color:#929fc1;}.chooser-help li{color:#acb6d1;}
+.chooser-help li:before{background:#232c46;border-color:#45527c;color:#b8bcff;}
+.canvas-toolbar{background:#0b1020dd;border-bottom-color:#293049;color:#afbbda;backdrop-filter:blur(22px);}
+.canvas-toolbar strong{color:#c2cbe3;}.canvas-status{background:#f8f9ff;color:#3d4665;box-shadow:0 0 20px #5555ff13;}
+.workspace-canvas{isolation:isolate;background-color:#080b16!important;background-image:radial-gradient(ellipse at 53% 45%,#2121b83d,transparent 58%),radial-gradient(ellipse at 85% 10%,#1436b325,transparent 45%),linear-gradient(#7f8dff08 1px,transparent 1px),linear-gradient(90deg,#7f8dff08 1px,transparent 1px)!important;background-size:auto,auto,58px 58px,58px 58px!important;}
+.empty-studio-icon{background:#181f3c;border:1px solid #5858ff65;box-shadow:0 0 60px #3333ff35,inset 0 1px 0 #ffffff0a;color:#c2c7ff;}
+.workspace-placeholder h1{color:#f5f6ff;font-weight:500;letter-spacing:-.9px;}
+.workspace-placeholder p{color:#a2afd2;}.workspace-placeholder .empty-formats span{background:#1c244066;border-color:#485477;color:#abb8dc;backdrop-filter:blur(10px);}
+.workspace-image-preview img{box-shadow:0 12px 60px #00000045,0 0 80px #3333ff13;}
+.workflow-panel .gallery-arrow{background:#fff!important;color:#0000ff!important;border-color:#dddfff!important;}
+.workflow-panel .img-thumb{background:#fff;border-color:#4e5e8a;}
+.img-gallery::-webkit-scrollbar-track{background:#222b42!important;}.img-gallery::-webkit-scrollbar-thumb{background:#6969ff!important;}
+.footer-note{background:#0b1020e8;color:#95a2c2!important;border-color:#293049!important;}
+.workspace-details>summary{background:#f7f8ff!important;color:#25256f!important;border-color:#d8dbf2!important;}
+.img-adjust{color:#262b43;color-scheme:light;}
+.card-head{background:#f9faff!important;color:#292d47!important;border-color:#e1e4ef;}
+.card-dl-btn,.dl-all-btn,.reset-btn,.copy-text-icon{color-scheme:light;background:#f9faff!important;color:#272774!important;border-color:#d5daf0!important;}
+.card-dl-btn:hover,.copy-text-icon:hover{background:#e4e6ff!important;color:#0000ff!important;}
+.output-head span,.output#workspaceOutput>.output-head+p{color:#a9b6d5!important;}
+.video-format-choice>span{background:#20283e!important;border-color:#394563!important;color:#cad3ef!important;}
+.video-format-choice.selected>span{background:#282869!important;color:#fff!important;outline-color:#7777ff!important;}
+.selected-image-details>summary{background:#fff;color:#0000ff;border-color:#cdd1ec;}
+#savedAdsPanel>p{color:#abb6d4;}#studioStatus{background:#19223a;color:#d8e0ff;border-color:#3d4a70;}
+@media(max-width:600px){.masthead{background:#0a0d16!important;}.workflow-panel{border-bottom-color:#2a3148!important;}.workspace-canvas{min-height:440px!important;}}
+.oomagent-logo{display:block;width:124px;height:38px;object-fit:contain;object-position:left center;filter:drop-shadow(0 0 16px #5555ff20);}
+@media(max-width:1000px){.oomagent-logo{width:112px;height:34px;}}
+
+/* Oomagent.ai's verified #0000ff, opened up into a brighter blue workspace. */
+:root{--ui-canvas:#2020db;}
+body{background:#1616d1;}
+.masthead{background:#0000ff!important;border-color:#ffffff28!important;box-shadow:0 5px 24px #00007518;}
+.app-name{color:#fff;}.app-name small,.client-identity{color:#d2d2ff;}.identity-rule{background:#ffffff38;}
+.app-modes{background:#0000bc;border-color:#ffffff25;}
+.app-mode{color:#d4d4ff;}.app-mode:hover{background:#2525d9;}
+body:not(:has(#chooseAdvertisement[aria-pressed="true"])):not(:has(#chooseVideo[aria-pressed="true"])) .app-mode:first-child,
+body:has(#chooseAdvertisement[aria-pressed="true"]) .app-mode[data-mode="advertisement"],body:has(#chooseVideo[aria-pressed="true"]) .app-mode[data-mode="video"]{background:#fff;color:#0000ff;box-shadow:0 2px 10px #00008c20;}
+.app-mode:disabled{opacity:.48;cursor:not-allowed;}
+.workflow-panel{background:linear-gradient(160deg,#2828c9,#1919ab 70%,#1f1fc3)!important;border-right-color:#ffffff30!important;scrollbar-color:#8888ef transparent!important;}
+.workflow-panel .panel-head{background:#2323bfef!important;border-bottom-color:#ffffff23;}
+#stepIndicator{color:#d2d2ff;}
+.workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,.workflow-panel .workflow-primary-action{border-color:#ffffff1c!important;}
+.workflow-panel .field-num{color:#c0c0ff!important;}
+.workflow-panel .hint,.workflow-panel .img-hint{color:#d1d1fa!important;}
+.workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea{background:#f5f5ff!important;color:#242477!important;border-color:#ffffff!important;color-scheme:light;box-shadow:0 2px 9px #00007312!important;}
+.workflow-panel input::placeholder,.workflow-panel textarea::placeholder{color:#8a8ab2;}
+.workflow-panel .generate-btn{border:1px solid #9c9cff;box-shadow:0 4px 18px #00007b40;}
+.workflow-panel .chip-opt{background:#ffffff15!important;color:#ededff!important;border-color:#ffffff3a!important;}
+.workflow-panel .chip-opt.on{background:#fff!important;color:#0000ff!important;border-color:#fff!important;}
+.workflow-panel .chip-opt:hover{background:#ffffff28!important;}
+.workspace-canvas{background-color:#2424dc!important;background-image:radial-gradient(ellipse at 48% 40%,#5c5cff99,transparent 65%),radial-gradient(ellipse at 90% 80%,#1616b499,transparent 60%),linear-gradient(#ffffff09 1px,transparent 1px),linear-gradient(90deg,#ffffff09 1px,transparent 1px)!important;}
+.canvas-toolbar{background:#2323cbe0;border-color:#ffffff25;}.canvas-toolbar strong{color:#e3e3ff;}
+.workspace-placeholder p{color:#ddddff;}.workspace-placeholder .empty-formats span{background:#ffffff16;border-color:#ffffff38;color:#ededff;}
+.empty-studio-icon{background:#ffffff17;color:#fff;border-color:#ffffff40;box-shadow:0 0 65px #8989ff60,inset 0 1px 0 #ffffff12;}
+.footer-note{background:#1e1ec9dd!important;color:#c5c5ff!important;border-color:#ffffff28!important;}
+.mode-choice-heading{grid-column:1/-1;}.mode-choice-heading>span{font:600 9px var(--ui-font);letter-spacing:.1em;color:#bfbfff;}
+.mode-choice-heading h2{font:600 14px var(--ui-font);margin:8px 0;color:#fff;}.mode-choice-heading p{font:400 11px/1.6 var(--ui-font);color:#d1d1fa;margin:0 0 5px;}
+.workflow-panel .workflow-choice:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none!important;}
+.workflow-panel .workflow-choice:disabled:hover{background:#f9faff!important;border-color:#fff!important;}
+.output-head span,.output#workspaceOutput>.output-head+p,#savedAdsPanel>p{color:#ddddff!important;}
+@media(max-width:600px){.masthead{background:#0000ff!important;}.workspace-canvas{background-color:#2424dc!important;}}
+.workflow-panel #backgroundPanel>label,.workflow-panel .video-format-fieldset legend,.workflow-panel #backgroundStatus{color:#eeeefe;}
+.workflow-panel #backgroundError{color:#ffd8de!important;}
+.workflow-panel #backgroundDescription{margin-top:8px;}
+.social-studio-brand-logo{display:block;width:152px;height:50px;object-fit:contain;object-position:left center;}
+@media(max-width:600px){.social-studio-brand-logo{width:136px;height:44px;}}
+
+/* Direct controls: bold typography, without secondary descriptions. */
+.app-mode{font-size:14px!important;font-weight:750!important;padding:10px 20px;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover{font-size:14px!important;font-weight:750!important;line-height:1.4!important;min-height:43px!important;}
+.workflow-panel .generate-btn{font-size:16px!important;font-weight:800!important;min-height:48px!important;}
+.workflow-panel .chip-opt{font-size:12px!important;font-weight:700!important;}
+.card-dl-btn,.dl-all-btn,.reset-btn{font-size:14px!important;font-weight:750!important;}
+.workflow-panel .workflow-choice,.workflow-panel .workflow-choice:hover{background:#5ce5a2!important;border-color:#5ce5a2!important;color:#093629!important;opacity:1!important;min-height:88px!important;}
+.workflow-panel .workflow-choice:hover:not(:disabled){background:#7ef3b9!important;border-color:#a0ffd1!important;box-shadow:0 5px 20px #2dea9925!important;}
+.workflow-choice .choice-text{color:#093629!important;font-size:18px!important;font-weight:800!important;line-height:1.3!important;}
+.workflow-choice .choice-icon{background:#ffffff40!important;color:#104b35!important;border-color:#1b70472b!important;}
+.workflow-panel .workflow-choice:disabled{background:#5fbd94!important;border-color:#5fbd94!important;opacity:1!important;cursor:not-allowed;}
+.workflow-panel .workflow-choice:disabled .choice-text,.workflow-panel .workflow-choice:disabled .choice-icon{color:#1e5a43!important;}
+.workflow-panel .workflow-choice:disabled:hover{background:#5fbd94!important;border-color:#5fbd94!important;}
+.workspace-placeholder{inset:64px 0 0!important;}
+@media(max-width:600px){.app-mode{font-size:13px!important;padding:9px 10px;}.workflow-choice .choice-text{font-size:16px!important;}.workflow-panel .upload-btn{font-size:13px!important;}.workspace-placeholder{inset:50px 0 0!important;}}
+.workflow-panel .panel-head:has(#workflowBack[hidden]){display:none;}
+.workflow-panel .panel-head{justify-content:flex-end;min-height:44px;padding:8px 22px!important;}
+.workspace-placeholder{inset:0!important;}
+.workspace-image-preview{inset:24px!important;}
+.output#workspaceOutput{min-height:100%!important;}
+.workspace-placeholder .empty-studio-icon{margin-bottom:18px;}
+
+/* Flat application surfaces, without shadows or glow. */
+.masthead,.app-modes,.app-mode,.app-mode:hover,
+body .app-modes .app-mode,
+.workflow-panel,.workflow-panel .workflow-choice,.workflow-panel .workflow-choice:hover,
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover,
+.workflow-panel .generate-btn,.workflow-panel .generate-btn:hover,
+.workflow-panel select,.workflow-panel input,.workflow-panel textarea,
+.workflow-panel .chip-opt,.workflow-panel .chip-opt.on,
+.workflow-panel .gallery-arrow,.choice-icon,.canvas-status,
+.workspace-image-preview img,.empty-studio-icon,.card,.card-dl-btn,.dl-all-btn,
+.reset-btn,.copy-text-icon,.workspace-details>summary,.img-adjust{
+  box-shadow:none!important;text-shadow:none!important;
+}
+.img-thumb,.img-thumb.selected{box-shadow:none!important;}
+.img-thumb.selected{outline:2px solid #0000ff;outline-offset:-2px;}
+.oomagent-logo,.social-studio-brand-logo{filter:none!important;}
+.workspace-canvas{
+  background-color:#2424dc!important;
+  background-image:linear-gradient(#ffffff09 1px,transparent 1px),linear-gradient(90deg,#ffffff09 1px,transparent 1px)!important;
+  background-size:58px 58px!important;
+}
+.choice-icon,.workflow-panel .upload-btn>.icon,.empty-studio-icon{display:none!important;}
+.workflow-choice{justify-content:center;text-align:center;}
+.masthead{min-height:112px!important;}
+.social-studio-brand-logo{width:190px;height:84px;}
+.workflow-panel #advancedAdjustments{margin:0;padding:12px 22px;border-bottom:1px solid #ffffff1c;}
+.workflow-panel #advancedAdjustments>summary{display:none;}
+.workflow-panel .img-adjust{position:static;top:auto;margin:0;padding:16px;border-radius:14px!important;background:#f8f8ff!important;color:#292969;}
+.workflow-panel .adjustment-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+.workflow-panel .adj-row{margin:0;}
+.workflow-panel .adj-row label{font:600 12px var(--ui-font);color:#292969;}
+.workflow-panel .adj-row input[type=range]{display:block;width:100%;min-height:24px!important;margin:5px 0 0;padding:0!important;background:transparent!important;border:0!important;accent-color:#0000ff;}
+body:not(:has(#chooseAdvertisement[aria-pressed="true"])) .adj-row:has(#gradientDarkness),body:not(:has(#chooseAdvertisement[aria-pressed="true"])) .adj-row:has(#textSlider){display:none;}
+.workspace-image-preview{overflow:hidden;}
+@media(max-width:600px){.masthead{min-height:140px!important;}.social-studio-brand-logo{width:160px;height:66px;}}
+
+/* Adjustment toolbar replaces the former top navigation. */
+.masthead #advancedAdjustments{flex:1;max-width:960px;margin:0 28px;padding:0;min-width:0;}
+.masthead #advancedAdjustments>summary{display:none;}
+.masthead #imgAdjust{position:static;display:block;margin:0;padding:10px 18px;background:#ffffff12!important;color:#fff;border:1px solid #ffffff30!important;border-radius:14px!important;box-shadow:none!important;backdrop-filter:none;}
+.masthead #imgAdjust>div:first-child{display:none!important;}
+.masthead .adjustment-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;}
+.masthead .adj-row{margin:0;}
+.masthead .adj-row label{font:650 12px var(--ui-font);color:#fff;}
+.masthead .adj-row label span{color:#e0e0ff;}
+.masthead .adj-row input[type=range]{--studio-slider-thumb-size:14px;display:block;width:84%;min-width:90px;max-width:100%;margin:4px auto 0;accent-color:#fff;flex:none;}
+.masthead .adj-row input[type=range]{appearance:none;-webkit-appearance:none;height:20px;background:transparent;}
+.masthead .adj-row input[type=range]::-webkit-slider-runnable-track{height:6px;background:#dcdde5;border:0;border-radius:999px;}
+.masthead .adj-row input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;box-sizing:border-box;width:var(--studio-slider-thumb-size);height:var(--studio-slider-thumb-size);margin-top:-6px;background:#fff;border:0;border-radius:50%;}
+.masthead .adj-row input[type=range]::-moz-range-track{height:6px;background:#dcdde5;border:0;border-radius:999px;}
+.masthead .adj-row input[type=range]::-moz-range-thumb{box-sizing:border-box;width:var(--studio-slider-thumb-size);height:var(--studio-slider-thumb-size);background:#0000ff;border:2px solid #fff;border-radius:50%;}
+.workflow-panel .img-thumb.selected{outline:4px solid #fff!important;outline-offset:-4px;}
+.workflow-panel .img-thumb.selected::after{display:none!important;content:none;}
+body:has(#chooseAdvertisement[aria-pressed="true"]) .masthead .adjustment-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;}
+.workflow-panel .workflow-choice,.workflow-panel .workflow-choice:hover{background:#72ff45!important;border-color:#72ff45!important;}
+.workflow-panel .workflow-choice:hover:not(:disabled){background:#90ff6b!important;border-color:#90ff6b!important;}
+.workflow-panel .workflow-choice:disabled,.workflow-panel .workflow-choice:disabled:hover{background:#72d94f!important;border-color:#72d94f!important;}
+.workflow-choice .choice-text{color:#143a0b!important;}
+@media(max-width:1000px){.masthead #advancedAdjustments{margin:0 10px;}.masthead .adjustment-grid{gap:12px;}.masthead .adj-row label{font-size:11px;}}
+@media(max-width:760px){.masthead{flex-wrap:wrap;padding:12px 18px!important;}.masthead #advancedAdjustments{order:3;flex-basis:100%;max-width:none;margin:8px 0 0;}.masthead .client-identity{display:flex;margin-left:auto;}body:has(#chooseAdvertisement[aria-pressed="true"]) .masthead .adjustment-grid{grid-template-columns:repeat(3,minmax(0,1fr));}.masthead .adj-row label{font-size:10px;}}
+
+/* Solid Oomagent blue with fine white section dividers. */
+.app-identity .oomagent-logo{width:112px;height:84px;object-fit:contain;flex-shrink:0;}
+@media(max-width:600px){.app-identity .oomagent-logo{width:88px;height:66px;}}
+body,.wrap,.studio-shell,.masthead,.workflow-panel,.workflow-panel .panel-head,.workspace-canvas{background:#0000ff!important;background-image:none!important;}
+.masthead{border-bottom:1px solid #ffffff80!important;}
+.workflow-panel{border-right:1px solid #ffffff80!important;}
+.workflow-panel .panel-head,.workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,.workflow-panel .workflow-primary-action{border-bottom:1px solid #ffffff80!important;}
+@media(max-width:600px){.workflow-panel{border-right:0!important;border-bottom:1px solid #ffffff80!important;}}
+
+/* A continuous blue gradient across the studio. */
+body{background:linear-gradient(135deg,#0000ff 0%,#2020ed 48%,#5555ff 100%) fixed!important;}
+.wrap,.studio-shell,.masthead,.workflow-panel,.workflow-panel .panel-head,.workspace-canvas{background:transparent!important;background-image:none!important;}
+
+
+
+/* Light workspace with blue brand marks. */
+body{background:#d5d8df!important;color:#242477;}
+.app-identity .oomagent-logo,.app-identity .social-studio-brand-logo{filter:brightness(0) saturate(100%) invert(8%) sepia(100%) saturate(7490%) hue-rotate(247deg) brightness(99%) contrast(151%)!important;}
+.workflow-panel .field label.title,.workflow-panel .img-field .title,.workflow-panel .field-num,.workflow-panel #backgroundPanel>label,.workflow-panel .video-format-fieldset legend,.workspace-placeholder h1{color:#242477!important;}
+.masthead #imgAdjust{background:#0000ff0a!important;border-color:#0000ff25!important;color:#242477;}
+.masthead .adj-row label,.masthead .adj-row label span{color:#242477!important;}
+.workflow-panel .chip-opt{color:#242477!important;border-color:#c4c7d6!important;background:#ffffff60!important;}
+
+/* Refined desktop studio surfaces and controls. */
+:root{--ui-font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--ui-ink:#292d38;}
+body{background:#d5d8df!important;color:#292d38;}
+.masthead{background:#e9ebef!important;border-bottom:1px solid #fff!important;padding:0 30px!important;}
+.app-identity{gap:26px;}
+.app-identity .social-studio-brand-logo{border-left:1px solid #c7cad4;padding-left:26px;width:164px;}
+.client-identity{padding:8px 12px;background:#ffffff70;border:1px solid #fff;border-radius:12px;}
+.workflow-panel{background:#e3e5eb!important;border-right:1px solid #fff!important;}
+.workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,.workflow-panel .workflow-primary-action{padding:20px 24px!important;border-bottom:1px solid #ffffffb3!important;}
+.workflow-panel .field label.title,.workflow-panel .img-field .title,.workflow-panel #backgroundPanel>label,.workflow-panel .video-format-fieldset legend{color:#505665!important;font-size:11px!important;font-weight:650!important;letter-spacing:.025em;}
+.workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea{background:#f6f7f9!important;border:1px solid #cdd1db!important;color:#303646!important;min-height:44px!important;border-radius:10px!important;font:500 12px var(--ui-font)!important;box-shadow:inset 0 1px 2px #232b3b05!important;}
+.workflow-panel select:focus-visible,.workflow-panel input:focus-visible,.workflow-panel textarea:focus-visible{outline:2px solid #0000ff;outline-offset:3px;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover{background:#fafbfc!important;border:1px solid #cdd1db!important;border-radius:12px!important;color:#343a49!important;min-height:44px!important;font:650 13px var(--ui-font)!important;box-shadow:0 1px 2px #18243b08!important;}
+.workflow-panel .upload-btn:hover{background:#fff!important;border-color:#a7adbc!important;}
+.workflow-panel .upload-btn+.upload-btn{margin-top:8px;}
+.workflow-chooser{padding:24px!important;gap:14px!important;}
+.workflow-panel .workflow-choice,.workflow-panel .workflow-choice:hover{min-height:68px!important;border-radius:14px!important;border:1px solid #62e536!important;box-shadow:inset 0 1px 0 #ffffff70!important;}
+.workflow-choice .choice-text{font:700 15px var(--ui-font)!important;letter-spacing:-.2px;}
+.workflow-panel .workflow-choice:disabled,.workflow-panel .workflow-choice:disabled:hover{background:#d4dfcc!important;border-color:#c2cfba!important;}
+.workflow-panel .workflow-choice:disabled .choice-text{color:#718269!important;}
+.workflow-panel .img-thumb{border-radius:12px!important;}
+.workspace-image-preview{inset:40px!important;}
+.workspace-image-preview img{border-radius:8px;box-shadow:0 8px 28px #28334c18!important;}
+.workspace-placeholder h1{font:500 19px var(--ui-font)!important;color:#747c8c!important;letter-spacing:-.4px;}
+.masthead #imgAdjust{background:#f4f5f8!important;border:1px solid #d4d8e1!important;border-radius:12px!important;}
+.masthead .adj-row label,.masthead .adj-row label span{color:#505665!important;}
+.masthead .adj-row input[type=range]::-webkit-slider-thumb{background:#0000ff;border:2px solid #fff;}
+@media(max-width:760px){.workspace-image-preview{inset:20px!important;}.app-identity{gap:14px;}.app-identity .social-studio-brand-logo{padding-left:14px;width:140px;}}
+
+.app-identity .social-studio-brand-logo{border-left:0;padding-left:0;}
+
+/* Spotify-inspired pill controls in Oomagent blue. */
+.workflow-panel .workflow-choice,.workflow-panel .workflow-choice:hover,
+.workflow-panel .generate-btn,.workflow-panel .generate-btn:hover{
+  background:#0000ff!important;border:1px solid #0000ff!important;
+  border-radius:999px!important;min-height:54px!important;
+  color:#fff!important;box-shadow:none!important;
+  transition:background .15s ease,transform .15s ease;
+}
+.workflow-panel .workflow-choice .choice-text{color:#fff!important;font:750 15px var(--ui-font)!important;letter-spacing:-.15px;}
+.workflow-panel .workflow-choice:hover:not(:disabled),.workflow-panel .generate-btn:hover:not(:disabled){background:#2929ff!important;border-color:#2929ff!important;transform:scale(1.015);}
+.workflow-panel .workflow-choice:active:not(:disabled),.workflow-panel .generate-btn:active:not(:disabled){transform:scale(.985);}
+.workflow-panel .workflow-choice:disabled,.workflow-panel .workflow-choice:disabled:hover,
+.workflow-panel .generate-btn:disabled{background:#c5c8d8!important;border-color:#c5c8d8!important;transform:none;box-shadow:none!important;}
+.workflow-panel .workflow-choice:disabled .choice-text{color:#74798c!important;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover,
+.card-dl-btn,.dl-all-btn,.reset-btn,.workflow-panel .workflow-back{
+  border-radius:999px!important;background:transparent!important;
+  border:1px solid #aeb3c0!important;color:#303646!important;
+  box-shadow:none!important;font-weight:750!important;min-height:44px!important;
+}
+.workflow-panel .upload-btn:hover,.card-dl-btn:hover,.dl-all-btn:hover,.reset-btn:hover{border-color:#0000ff!important;color:#0000ff!important;background:#ffffff40!important;}
+.workflow-panel .workflow-back{min-height:28px!important;}
+.workflow-panel .chip-opt{border-radius:999px!important;}
+.workflow-panel .chip-opt.on{background:#0000ff!important;border-color:#0000ff!important;color:#fff!important;}
+
+/* Consistent Oomagent blue outlines on interface controls. */
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover,
+.card-dl-btn,.dl-all-btn,.reset-btn,.workflow-panel .workflow-back,
+.workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea,
+.workflow-panel .chip-opt,.workflow-panel .gallery-arrow{
+  border-color:#0000ff!important;
+}
+
+/* Blue labels on outlined buttons. */
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover,
+.card-dl-btn,.card-dl-btn:hover,.dl-all-btn,.dl-all-btn:hover,
+.reset-btn,.reset-btn:hover,.workflow-panel .workflow-back,
+.workflow-panel .gallery-arrow,.workflow-panel .chip-opt{color:#0000ff!important;}
+.workflow-panel .chip-opt.on{color:#fff!important;}
+
+/* Larger button typography. */
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover,
+.card-dl-btn,.dl-all-btn,.reset-btn{font-size:15px!important;}
+.workflow-panel .workflow-choice .choice-text,.workflow-panel .generate-btn{font-size:17px!important;}
+.workflow-panel .chip-opt{font-size:13px!important;}
+
+/* Fine blue sketchbook grid on the canvas only. */
+.workspace-canvas{
+  background-color:#d5d8df!important;
+  background-image:linear-gradient(#0000ff0d 1px,transparent 1px),linear-gradient(90deg,#0000ff0d 1px,transparent 1px)!important;
+  background-size:24px 24px!important;
+  background-position:center center!important;
+}
+
+.masthead .app-identity{order:2;margin-left:auto;}
+.masthead #advancedAdjustments{order:1;margin-left:0;}
+@media(max-width:760px){.masthead .app-identity{flex:0 0 auto;}.masthead #advancedAdjustments{order:3;}}
+
+.masthead .client-brand-logo{order:0;width:204px;height:74px;object-fit:contain;border-radius:10px;flex-shrink:0;}
+@media(max-width:600px){.masthead .client-brand-logo{width:150px;height:54px;}}
+
+/* Medium grey gradient with the blue control palette. */
+body{background:linear-gradient(135deg,#d2d5dc 0%,#b9bec9 52%,#a2a9b7 100%) fixed!important;color:#292d38;}
+.workspace-canvas{background-color:transparent!important;}
+.workflow-panel{background:#e3e5eb85!important;}
+.masthead{background:#e9ebefb3!important;}
+.workflow-panel #brand{text-align:center;text-align-last:center;}
+
+/* One slow-moving grey gradient behind the complete interface. */
+body{
+  background:linear-gradient(115deg,#b3b8c2 0%,#858c99 38%,#444b57 72%,#a4aab5 100%) fixed!important;
+  background-size:250% 250%!important;
+  animation:studio-grey-drift 32s ease-in-out infinite alternate;
+}
+.masthead,.workflow-panel{background:transparent!important;}
+@keyframes studio-grey-drift{from{background-position:0% 35%;}to{background-position:100% 65%;}}
+@media(prefers-reduced-motion:reduce){body{animation:none;background-position:40% 50%!important;}}
+
+.masthead .client-brand-logo{border-radius:0;height:60px;}
+
+.workflow-panel label[for="brand"]{display:block;text-align:center;color:#303646!important;font-size:13px!important;font-weight:700!important;}
+
+/* Restore the light grey workspace. */
+body{background:#d5d8df!important;animation:none!important;}
+.masthead{background:#e9ebef!important;}
+.workflow-panel{background:#e3e5eb!important;}
+.workspace-canvas{background-color:#d5d8df!important;}
+
+/* Minimal copy and consistent action button sizing. */
+.workflow-panel .hint,.workflow-panel .img-hint,.workflow-panel .field-num,
+.workflow-panel .choice-text small,.workflow-panel label.title,.workflow-panel .img-field .title{display:none!important;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover,
+.workflow-panel .workflow-choice,.workflow-panel .workflow-choice:hover,
+.workflow-panel .generate-btn,.workflow-panel .generate-btn:hover{
+  height:52px!important;min-height:52px!important;box-sizing:border-box;
+  display:flex;align-items:center;justify-content:center;padding:0 20px!important;
+}
+.workflow-panel .workflow-choice:disabled,.workflow-panel .workflow-choice:disabled:hover{
+  background:#0000ff!important;border-color:#0000ff!important;opacity:.55!important;
+}
+.workflow-panel .workflow-choice:disabled .choice-text{color:#fff!important;}
+
+.masthead .client-brand-logo{width:280px;height:82px;}
+@media(max-width:600px){.masthead .client-brand-logo{width:190px;height:62px;}}
+
+/* Warm grey studio palette. */
+body{background:#d8d3cc!important;}
+.masthead{background:#e9e5df!important;}
+.workflow-panel{background:#e3ded7!important;}
+.workspace-canvas{background-color:#d8d3cc!important;}
+
+/* Larger ToyToyz brand mark. */
+.masthead .client-brand-logo{width:360px;height:94px;}
+@media(max-width:600px){.masthead .client-brand-logo{width:230px;height:72px;}}
+
+/* Equal 12px spacing throughout the main action stack. */
+.workflow-panel .img-field{padding-bottom:0!important;border-bottom:0!important;}
+.workflow-panel .img-field>.upload-btn{margin:12px 0 0!important;}
+.workflow-panel .background-actions:not(:has(button:not([hidden]))){display:none!important;}
+.workflow-panel .library-upload{width:calc(100% - 48px)!important;margin:12px 24px 0!important;}
+.workflow-panel .workflow-chooser{padding:12px 24px 24px!important;gap:12px!important;}
+#brandImageStep{gap:0!important;}
+.workflow-panel .background-actions:not(:has(button:not([hidden]))){margin:0!important;padding:0!important;height:0!important;}
+
+/* Exact Oomagent brand blue for all action controls. */
+.workflow-panel .workflow-choice,.workflow-panel .workflow-choice:hover,
+.workflow-panel .workflow-choice:disabled,.workflow-panel .workflow-choice:disabled:hover,
+.workflow-panel .generate-btn,.workflow-panel .generate-btn:hover{
+  background:#0000ff!important;border-color:#0000ff!important;opacity:1!important;
+}
+.workflow-panel .workflow-choice .choice-text,.workflow-panel .workflow-choice:disabled .choice-text{color:#fff!important;}
+.workflow-panel .upload-btn,.workflow-panel .upload-btn:hover,.card-dl-btn,.dl-all-btn,.reset-btn,.workflow-panel .chip-opt{color:#0000ff!important;border-color:#0000ff!important;}
+.workflow-panel .chip-opt.on{color:#fff!important;}
+
+/* Transparent brand selector with blue text. */
+.workflow-panel #brand{background:transparent!important;color:#0000ff!important;border-color:#0000ff!important;box-shadow:none!important;}
+.workflow-panel #brand option{background:#e3ded7;color:#0000ff;}
+
+/* Flat canvas preview without drop shadows. */
+.workspace-canvas,.workspace-image-preview,.workspace-image-preview img{box-shadow:none!important;filter:none!important;}
+
+/* Blend the supplied white logo background into the header without editing the image. */
+.masthead .client-brand-picture{display:contents;}
+.masthead .client-brand-logo{filter:none;image-rendering:auto;mix-blend-mode:multiply;}
+
+/* Video controls follow the warm, minimal studio design. */
+.workflow-panel #aiVideoOptions{background:transparent!important;padding:0!important;border:0!important;box-shadow:none!important;}
+.workflow-panel #aiVideoPrompt{background:#ffffff35!important;border:1px solid #0000ff55!important;border-radius:14px!important;padding:14px 16px!important;font:400 14px/1.6 var(--ui-font)!important;min-height:120px;}
+.workflow-panel .video-format-fieldset{margin:18px 0!important;}
+.workflow-panel .video-format-fieldset legend{font:600 12px var(--ui-font)!important;color:#56545c!important;margin-bottom:10px;}
+.workflow-panel .video-format-choices{gap:12px!important;}
+.workflow-panel .video-format-choice{min-height:64px!important;border-radius:14px!important;background:transparent!important;}
+.workflow-panel .video-format-choice>span{background:transparent!important;border:1px solid #0000ff70!important;color:#0000ff!important;border-radius:14px!important;outline:none!important;gap:3px;}
+.workflow-panel .video-format-choice strong{font:650 14px var(--ui-font)!important;}
+.workflow-panel .video-format-choice>span>span{font:400 11px var(--ui-font)!important;opacity:.7;}
+.workflow-panel .video-format-choice.selected>span{background:#0000ff!important;color:#fff!important;border-color:#0000ff!important;outline:none!important;}
+.workflow-panel .video-format-choice.selected::after{display:none!important;content:none;}
+.workflow-panel #generateAIVideoBtn{outline:none!important;border-radius:999px!important;font-size:16px!important;box-shadow:none!important;}
+.workflow-panel #generateAIVideoBtn:focus-visible{outline:2px solid #0000ff!important;outline-offset:3px!important;}
+.workflow-panel #videoFields,.workflow-panel #videoFields .video-step{background:transparent!important;}
+.workflow-panel #aiVideoPrompt{background:#fff!important;}
+
+.social-platform-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:18px;padding:18px 24px;background:#e9e5df;border-top:1px solid #fff;}
+.social-platform-mark{display:block;width:32px;height:32px;flex:0 0 32px;background-image:url('social-platforms-blue.svg');background-size:176.552px 176.552px;background-position:var(--sprite-x) var(--sprite-y);background-repeat:no-repeat;}
+@media(max-width:600px){.social-platform-footer{gap:14px;}}
+
+/* Bold blue selection edge on gallery images. */
+.workflow-panel .img-thumb.selected{outline:5px solid #0000ff!important;outline-offset:-5px;}
+
+/* Solid blue circular navigation arrows. */
+.workflow-panel .gallery-arrow,.workflow-panel .gallery-arrow:hover,
+.workflow-panel .workflow-back,.workflow-panel .workflow-back:hover{
+  background:#0000ff!important;border:1px solid #0000ff!important;color:#fff!important;
+  border-radius:50%!important;box-shadow:none!important;
+}
+
+/* Remove the empty background-action row's residual 6px margin. */
+.workflow-panel .img-field>.background-actions{margin-top:0!important;}
+.workflow-panel .img-field>.background-actions:has(button[style*="display: block"]){margin-top:12px!important;}
+
+.studio-copyright{text-align:center;padding:0 24px 16px;background:#e9e5df;color:#66616a;font:400 11px/1.5 var(--ui-font);letter-spacing:.02em;}
+
+.app-identity .oomagent-logo{filter:brightness(0) saturate(100%) invert(8%) sepia(100%) saturate(7490%) hue-rotate(247deg) brightness(99%) contrast(151%)!important;}
+
+/* Larger brand selection text. */
+.workflow-panel #brand{font-size:15px!important;font-weight:750!important;}
+
+/* Sliders sit directly in the header without a surrounding panel. */
+.masthead #imgAdjust{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;}
+
+/* Fine blue slider tracks. */
+.masthead .adj-row input[type=range]::-webkit-slider-runnable-track{height:2px;background:#0000ff;border:0;border-radius:999px;}
+.masthead .adj-row input[type=range]::-webkit-slider-thumb{margin-top:calc((2px - var(--studio-slider-thumb-size))/2);}
+.masthead .adj-row input[type=range]::-moz-range-track{height:2px;background:#0000ff;border:0;border-radius:999px;}
+
+/* Smaller handles retain a comfortable touch target on phones and tablets. */
+@media(pointer:coarse){.masthead .adj-row input[type=range]{height:44px;}}
+
+/* Percentages follow the centre of each slider thumb. */
+.masthead .adj-row{position:relative;display:flex;flex-direction:column;padding-bottom:22px;}
+.masthead .adj-row label span{display:none!important;}
+.masthead .slider-thumb-value{position:absolute;bottom:0;transform:translateX(-50%);color:#0000ff;font:600 11px/1.3 var(--ui-font);white-space:nowrap;pointer-events:none;}
+
+/* Uniform rectangular USP choices. */
+.workflow-panel #uspChips{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px!important;}
+.workflow-panel #uspChips .chip-opt{width:100%;min-width:0;height:48px!important;min-height:48px!important;box-sizing:border-box;border-radius:0!important;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px 8px!important;font-size:12px!important;line-height:1.25;white-space:normal;}
+
+/* No white panel behind the advertisement action. */
+.workflow-panel #advertisementFields,.workflow-panel #advertisementFields .workflow-primary-action{background:transparent!important;}
+
+/* Centred slider headings. */
+.masthead .adj-row>label{display:block!important;flex:1;width:100%;text-align:center!important;}
+
+/* Compact USP button height. */
+.workflow-panel #uspChips .chip-opt{height:36px!important;min-height:36px!important;padding:4px 8px!important;}
+
+.platform-select-wrap{position:relative;width:100%;}
+.workflow-panel .platform-select-wrap #platform{width:100%;padding-right:46px!important;}
+.platform-select-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:22px;height:22px;background-image:url('social-platforms-blue.svg');background-size:121.379px 121.379px;pointer-events:none;}
+.platform-select-icon[hidden]{display:none;}
+
+
+.platform-select-icon.instagram-only{background-image:url('instagram-platform.svg');background-size:22px 22px;background-position:center!important;}
+.platform-select-icon.instagram-only{width:26px;height:26px;background-size:26px 26px;}
+
+/* Match field text to the blue button labels. */
+.workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea,.workflow-panel #aiVideoPrompt{font-size:15px!important;}
+
+/* Very light neutral grey for the advertisement selectors. */
+.workflow-panel #platform,.workflow-panel #format,.workflow-panel #tone{background:#f0f0f0!important;}
+
+/* Responsive application layout; generated advertisement artwork is unchanged. */
+.masthead{
+  min-height:96px!important;padding:12px 24px!important;gap:20px;
+  flex-wrap:wrap;
+}
+.masthead .client-brand-logo{width:clamp(140px,22vw,300px);height:72px;}
+.masthead .app-identity{flex:0 0 auto;min-width:0;}
+.masthead .social-studio-brand-logo{width:128px;height:72px;padding:0;}
+.masthead #advancedAdjustments{min-width:0;margin:0;}
+.masthead #imgAdjust{padding:8px 0;}
+.masthead .adj-row{min-width:0;}
+.masthead .adj-row label{white-space:normal;line-height:1.4;}
+.studio-shell,.workflow-panel,.workspace-canvas,.workflow-fields{min-width:0;}
+.workspace-image-preview{inset:24px!important;}
+.workspace-image-preview img{max-width:100%;max-height:100%;}
+.output-head,.card-dl-row{flex-wrap:wrap;}
+.card-dl-btn,.dl-all-btn{white-space:normal;}
+.social-platform-footer,.studio-copyright{flex-shrink:0;}
+
+@media(min-width:901px){
+  .wrap{grid-template-rows:auto minmax(0,1fr) auto auto;}
+  .studio-shell{grid-template-columns:340px minmax(0,1fr)!important;}
+  .workspace-canvas{min-height:0!important;}
+}
+@media(min-width:1400px){
+  .studio-shell{grid-template-columns:400px minmax(0,1fr)!important;}
+}
+@media(max-width:1200px){
+  .masthead #advancedAdjustments{order:3;flex:1 0 100%;max-width:none;margin:0;}
+}
+@media(max-width:900px){
+  html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto;}
+  .wrap{display:flex!important;flex-direction:column;width:100%;height:auto;min-height:100dvh;overflow:visible;}
+  .masthead{flex:none;min-height:88px!important;padding:12px 16px!important;gap:12px;}
+  .masthead .client-brand-logo{width:45%;max-width:260px;height:64px;}
+  .masthead .social-studio-brand-logo{width:96px;height:64px;}
+  .studio-shell{display:grid;grid-template-columns:minmax(0,1fr)!important;height:auto;overflow:visible;}
+  .studio-shell>.workflow-panel,.studio-shell>.workspace-canvas{grid-column:1;grid-row:auto;}
+  .workflow-panel{
+    position:static!important;top:auto!important;width:100%;height:auto;max-height:none;
+    overflow:visible;border-right:0!important;border-bottom:1px solid #fff!important;
+  }
+  .workspace-canvas{height:auto;min-height:440px!important;overflow:visible;overscroll-behavior:auto;}
+  .workflow-panel .workflow-chooser{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .workflow-panel select,.workflow-panel input[type=text],.workflow-panel textarea,
+  .workflow-panel #aiVideoPrompt{font-size:16px!important;}
+  .workflow-panel .gallery-arrow{width:44px;height:44px;}
+  .workflow-panel #uspChips .chip-opt{height:auto!important;min-height:44px!important;}
+  .output#workspaceOutput{padding:16px!important;min-height:0!important;}
+  .workspace-image-preview{inset:16px!important;}
+  body:has(#chooseAdvertisement[aria-pressed="true"]) .masthead .adjustment-grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;
+  }
+}
+@media(max-width:480px){
+  .masthead .client-brand-logo{height:56px;}
+  .masthead .social-studio-brand-logo{width:88px;height:56px;}
+  .workflow-panel .workflow-chooser{grid-template-columns:minmax(0,1fr);}
+  body:has(#chooseAdvertisement[aria-pressed="true"]) .masthead .adjustment-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .workflow-panel .field,.workflow-panel .img-field,.workflow-panel .usp-field,
+  .workflow-panel .workflow-primary-action{padding-left:16px!important;padding-right:16px!important;}
+  .workflow-panel .library-upload{width:calc(100% - 32px)!important;margin-left:16px!important;margin-right:16px!important;}
+  .workflow-panel .workflow-chooser{padding-left:16px!important;padding-right:16px!important;}
+  .workspace-canvas{min-height:360px!important;}
+}
+@media(min-width:901px) and (max-height:600px){
+  html,body{height:auto;overflow-y:auto;}
+  .wrap{height:auto;min-height:100dvh;overflow:visible;}
+  .studio-shell{height:560px;}
+}

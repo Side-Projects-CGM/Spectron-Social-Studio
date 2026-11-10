@@ -15,7 +15,7 @@ const db={objectStoreNames:{contains:name=>stores.has(name)},createObjectStore(n
 }};
 const indexedDB={open(name,next){assert.equal(name,'spectron-saved-ads');const request={};queueMicrotask(()=>{request.result=db;if(version<next){request.onupgradeneeded();version=next;}request.onsuccess();});return request;}};
 function session(){
- const elements=new Map();const el=id=>{if(!elements.has(id)) elements.set(id,{value:'',setAttribute(){},style:{setProperty(name,value){this[name]=value;}},textContent:'',innerHTML:'',classList:{add(){}},append(){},replaceChildren(){},scrollIntoView(){},getAttribute(){return context.selectedImage;}});return elements.get(id);};
+ const elements=new Map();const el=id=>{if(!elements.has(id)) elements.set(id,{value:'',setAttribute(){},removeAttribute(key){delete this[key];},style:{setProperty(name,value){this[name]=value;}},textContent:'',innerHTML:'',classList:{add(){}},append(){},replaceChildren(){},scrollIntoView(){},getAttribute(){return context.selectedImage;}});return elements.get(id);};
  el('brand').value='Bluey';
  const context=vm.createContext({console,structuredClone,indexedDB,crypto:require('node:crypto').webcrypto,
   document:{getElementById:el,createElement:()=>el(Symbol()),querySelector:()=>el('image'),querySelectorAll:selector=>selector === '.gallery-arrow' ? [el('prevArrow'),el('nextArrow')] : []},

@@ -43,7 +43,7 @@ function renderBackgroundControls() {
   const busy = !!backgroundRequest || backgroundSaving;
   backgroundElement('backgroundPanel').setAttribute('aria-busy', String(busy));
   backgroundElement('backgroundGenerate').disabled = busy;
-  backgroundElement('backgroundGenerate').textContent = busy ? 'Bezig met genereren…' : backgroundPreview ? 'Opnieuw genereren' : 'Generate';
+  backgroundElement('backgroundGenerate').textContent = busy ? 'Bezig met genereren…' : backgroundPreview ? 'Opnieuw genereren' : 'Genereren';
   backgroundElement('backgroundDescription').disabled = busy;
   backgroundElement('backgroundAccept').disabled = busy || !backgroundPreview;
   backgroundElement('backgroundRestore').disabled = backgroundSaving;

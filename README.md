@@ -228,7 +228,7 @@ The server uses the Gemini Interactions REST API (revision `2026-05-20`):
    waiting for generation or retrying the paid request.
 2. The browser polls `veo-video-status` every 10 seconds, up to seven minutes.
    The function reads `GET /v1beta/interactions/<id>` and returns only pending,
-   failed, or completed state—not prompts, credentials, media URLs or video data.
+   failed, completed, or unknown state—not prompts, credentials, media URLs or video data.
 3. `download-veo-video` retrieves the completed MP4 separately. REST video output
    is read from `steps[].content[]`, not the SDK-only `output_video` field.
    Google currently returns inline base64 on interaction GET, even when URI
@@ -259,6 +259,20 @@ Netlify's Functions environment; never put them in HTML or client JavaScript.
 Quota errors return HTTP 429 and **Google usage limit reached**. Provider error
 bodies are not exposed or logged by the new video path. Confirmation is still
 required before every paid start; polling and downloading never start another job.
+
+Video failures inspect the Interactions API's `errors[]` array (and legacy
+`error`) and return fixed, safe messages for quota, permission, authentication,
+and content filtering. Completed requests with no MP4 remain completed with
+output unavailable; incomplete/continuation states remain unknown and recoverable.
+Provider error text, model text and credentials are not echoed to the browser.
+A confirmed failed operation no longer shows the misleading "may already have
+started" warning; unknown/network failures still warn before another paid start.
+Existing requests can be resumed after refresh or network failure without a new
+paid generation. Google downloads marked `video/unknown` require validated MP4
+file-type bytes before they are served as MP4. Usage counts only supported video
+outputs, not completion alone.
+No failure automatically retries generation. Run `node --test test-video-errors.cjs`
+for mocked regression checks; these never call Google or start a paid video.
 
 Background execution requires Google-side interaction storage (`store: true`).
 Google's retention rules apply to uploaded media, prompts and generated output;

@@ -7,7 +7,7 @@ const delay = milliseconds => new Promise(resolve => setTimeout(resolve, millise
 const windows = process.platform === 'win32';
 const cliPath = windows ? path.join(process.env.APPDATA, 'npm/node_modules/netlify-cli/bin/run.js') : null;
 const child = spawn(windows ? process.execPath : 'netlify',
-  windows ? [cliPath, 'dev', '--offline', '--port', '8899'] : ['dev', '--offline', '--port', '8899'], {
+  windows ? [cliPath, 'dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002'] : ['dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002'], {
     env:{...process.env, GOOGLE_DEVELOPER_API_KEY:'mock-only-not-a-real-google-key',
       NODE_OPTIONS:`--require="${path.resolve('mock-video-network.cjs').split(path.sep).join('/')}"`},
     stdio:['ignore', 'pipe', 'pipe']
@@ -77,9 +77,9 @@ async function checkVideoFlow() {
   const failed = await call('veo-video-status?operation=interactions%2Flocal-mock-failed');
   assert.equal((await failed.json()).category, 'content-filter');
   const quota = await start('mock:quota'); assert.equal(quota.status, 429);
-  assert.match((await quota.json()).error, /Google usage limit reached/);
+  assert.match((await quota.json()).error, /gebruikslimiet van Google/);
   const permission = await start('mock:permission'); assert.equal(permission.status, 502);
-  assert.match((await permission.json()).error, /not permitted/);
+  assert.match((await permission.json()).error, /geen toegang tot videogeneratie/);
 }
 async function stop() {
   if (windows) {

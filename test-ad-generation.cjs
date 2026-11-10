@@ -22,7 +22,7 @@ function restored(s){assert.equal(s.el('generateBtn').disabled,false);assert.mat
  assert.match(s.el('resultsArea').innerHTML,/role="progressbar"/);
  assert.match(s.el('resultsArea').innerHTML,/aria-live="polite"/);
  assert.doesNotMatch(s.el('resultsArea').innerHTML,/OLD RESULTS|aria-valuenow/);
- assert.equal(s.el('generateBtn').disabled,true);assert.equal(s.el('generateBtn').innerHTML,'Generating...');
+ assert.equal(s.el('generateBtn').disabled,true);assert.equal(s.el('generateBtn').innerHTML,'Bezig met genereren...');
  await s.run();assert.equal(s.requests(),1);
  s.respond(success);await pending;restored(s);assert.equal(s.renders(),1);assert.equal(s.el('resultsArea').innerHTML,'NEW RESULTS');
  // A later click starts a new generation after the lock is released.

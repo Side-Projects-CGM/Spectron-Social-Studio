@@ -86,7 +86,7 @@ test('friendly quota, authentication, permission, network and timeout errors nev
       const response = await handler();
       assert.equal(response.statusCode, code === 429 ? 429 : 502);
       assert.doesNotMatch(response.body, /mock-key|private prompt|YWJj/);
-      if (code === 429) assert.match(read(response).error, /Google usage limit reached/);
+      if (code === 429) assert.match(read(response).error, /gebruikslimiet van Google/);
     }
   }
   responseStatus = 200;
@@ -221,7 +221,7 @@ test('video/unknown rejects non-MP4 brands, malformed and unbounded ftyp boxes',
       : new Response(bytes, {headers:{'Content-Type':'video/unknown'}});
     const response = await download(event());
     assert.equal(response.statusCode, 502);
-    assert.equal(read(response).error, 'Google returned an invalid video download.');
+    assert.equal(read(response).error, 'Google gaf een ongeldige videodownload.');
     assert.doesNotMatch(response.body, /private detail|<html>/);
   }
 });
@@ -237,7 +237,7 @@ test('unknown-video fallback preserves MIME, size, URL and redirect restrictions
   payload = url => url.endsWith('/interactions/mock')
     ? Response.json(completed({uri:'files/mock:download'}))
     : new Response(oversized, {headers:{'Content-Type':'video/unknown'}});
-  assert.match(read(await download(event())).error, /too large/);
+  assert.match(read(await download(event())).error, /te groot/);
   payload = completed({uri:'https://evil.test/video.mp4'});
   assert.equal((await download(event())).statusCode, 502);
   assert.equal(requests.filter(request => request.url.startsWith('https://evil.test')).length, 0);
@@ -282,7 +282,7 @@ test('cap-plus-one URI downloads are rejected for MP4 and validated unknown-vide
     const response = await download(event());
     assert.equal(response.statusCode, 502, source);
     assert.equal(read(response).error,
-      'This video is too large to download through the video service. Please contact support.');
+      'Deze video is te groot om via de videodienst te downloaden. Neem contact op met de ondersteuning.');
   }
   assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
 });
@@ -312,8 +312,8 @@ test('completed without supported video is not provider failure and does not inv
     assert.equal(read(response).state, 'completed');
     assert.equal(read(response).outputAvailable, false);
     assert.equal(read(response).category, 'output-unavailable');
-    assert.match(read(response).message, /completed.*unavailable or unrecognised/);
-    assert.doesNotMatch(response.body, /could not generate|output_video|files\/mock/);
+    assert.match(read(response).message, /voltooid.*niet beschikbaar of niet herkend/);
+    assert.doesNotMatch(response.body, /kon deze video niet genereren|output_video|files\/mock/);
     const video = await download(event());
     assert.equal(video.statusCode, 502);
     assert.equal(read(video).category, 'output-unavailable');
@@ -354,7 +354,7 @@ test('streaming entrypoints preserve validation, pending and safe timeout errors
     const response = await serve(new Request(url));
     assert.equal(response.status, 502);
     const message = await response.text();
-    assert.match(message, /too long/);
+    assert.match(message, /duurde te lang/);
     assert.doesNotMatch(message, /mock-key|private detail/);
     assert.equal(requests.filter(request => request.options.method === 'POST').length, 0);
   }

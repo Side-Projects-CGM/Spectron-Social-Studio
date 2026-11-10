@@ -5,7 +5,7 @@ const pageSource=fs.readFileSync('spectron-social-studio.html','utf8');
 const fitSource=pageSource.slice(pageSource.indexOf('function applyTextScale('),pageSource.indexOf('function resetImageAdjust('));
 const preview={clientWidth:280,clientHeight:280*16/9,classList:{contains:()=>true}};
 let lines=2;
-const headline={parentElement:preview,style:{setProperty(name,value){this[name]=value;}},classList:{contains:()=>true},get offsetHeight(){return parseFloat(this.style.fontSize)*1.04*lines;}};
+const headline={parentElement:preview,clientWidth:240,scrollWidth:240,style:{setProperty(name,value){this[name]=value;}},classList:{contains:()=>true},get offsetHeight(){return parseFloat(this.style.fontSize)*1.04*lines;}};
 const fitContext=vm.createContext({selectedVariantIndex:0,variantVisuals:[{textScale:1.5},{textScale:1.8}],DEFAULT_TEXT_SCALE:1.5,TEXT_BASE_SIZES:{'.headline-on-image':26},document:{querySelectorAll:()=>[headline]}});
 vm.runInContext(fitSource,fitContext);
 vm.runInContext('applyTextScale(0)',fitContext);

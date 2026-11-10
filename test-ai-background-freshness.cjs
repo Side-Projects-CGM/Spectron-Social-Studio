@@ -89,7 +89,7 @@ test('result is selected before saving completes; a late save does not override 
 });
 
 test('picker excludes saved AI and legacy mixed uploads on both initial load and refresh',()=>{
- const gallery={innerHTML:''};
+ const gallery={innerHTML:'',style:{},removeAttribute(key){delete this[key];}};
  const ctx=vm.createContext({activeStudioWorkflow:null,selectedImage:null,BRAND_IMAGES:{IMC:[original]},
    brandImageRecords:[{image:old,source:'ai-background',brand:'IMC'}],uploadedImages:[old],uploadedLibraryImages:{IMC:[old,original]},
    document:{getElementById:id=>id==='brand'?{value:'IMC'}:gallery,querySelectorAll:()=>[]},escapeHtml:s=>s,

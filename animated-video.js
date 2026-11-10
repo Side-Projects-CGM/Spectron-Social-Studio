@@ -26,7 +26,7 @@ function cleanupAnimatedVideo(){
   const job = animatedVideoJob;
   if(job){
     job.cancelled = true;
-    job.reject?.(new Error('Video generation cancelled.'));
+    job.reject?.(new Error('Videogeneratie geannuleerd.'));
     releaseVideoRecording(job);
     animatedVideoJob = null;
     setAdGenerationState(false);
@@ -57,7 +57,7 @@ function videoMotion(style, progress, visual){
   }
   return position;
 }
-function checkVideoJob(job){ if(job.cancelled) throw new Error('Video generation cancelled.'); }
+function checkVideoJob(job){ if(job.cancelled) throw new Error('Videogeneratie geannuleerd.'); }
 function recordAnimatedCanvas(job, canvas, drawFrame, seconds, mimeType){
   return new Promise((resolve,reject) => {
     job.reject = reject;
@@ -67,10 +67,10 @@ function recordAnimatedCanvas(job, canvas, drawFrame, seconds, mimeType){
       const recorder = job.recorder = new MediaRecorder(job.stream,{mimeType,videoBitsPerSecond:6000000});
       const chunks = [];
       recorder.ondataavailable = event => { if(event.data.size) chunks.push(event.data); };
-      recorder.onerror = () => reject(new Error('Video recording failed. Please retry or choose Image.'));
+      recorder.onerror = () => reject(new Error('De video-opname is mislukt. Probeer het opnieuw of kies Afbeelding.'));
       recorder.onstop = () => {
         const blob = new Blob(chunks,{type:recorder.mimeType || mimeType});
-        if(!blob.size) reject(new Error('No video was recorded. Please retry.'));
+        if(!blob.size) reject(new Error('Er is geen video opgenomen. Probeer het opnieuw.'));
         else resolve(blob);
       };
       recorder.start(100);
@@ -86,7 +86,7 @@ function recordAnimatedCanvas(job, canvas, drawFrame, seconds, mimeType){
         }catch(error){ reject(error); }
       }
       job.frame = requestAnimationFrame(frame);
-      job.timeout = setTimeout(()=>reject(new Error('Recording timed out. Keep this tab visible and retry.')),seconds*1000+10000);
+      job.timeout = setTimeout(()=>reject(new Error('De opname duurde te lang. Houd dit tabblad zichtbaar en probeer het opnieuw.')),seconds*1000+10000);
     }catch(error){ reject(error); }
   });
 }
@@ -95,7 +95,7 @@ async function ensureVideoCapture(){
     await new Promise((resolve,reject)=>{
       const script=document.createElement('script');
       script.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      script.onload=resolve;script.onerror=()=>reject(new Error('Could not load canvas capture. Please retry.'));
+      script.onload=resolve;script.onerror=()=>reject(new Error('De beeldopname kon niet worden geladen. Probeer het opnieuw.'));
       document.head.appendChild(script);
     });
   }
@@ -120,11 +120,11 @@ async function generateAnimatedAd(){
   setAdGenerationState(true);
   try{
     const mime=videoMimeType();
-    if(!mime) throw new Error('Video recording is not supported in this browser. Choose Image, or try Chrome or Edge.');
-    if(!brand || !image) throw new Error('Select a brand and Brand Image first.');
-    if(![3,4,5].includes(seconds)) throw new Error('Choose a duration of 3, 4 or 5 seconds.');
-    if(!['zoom-in','zoom-out','pan-right','pan-left'].includes(motion)) throw new Error('Choose a supported motion style.');
-    if(!format.width || !format.height || PLATFORM_LIMITS[platform]?.mock!=='social') throw new Error('Choose an Instagram/Facebook post, story or TikTok format for video. Image generation remains available for this format.');
+    if(!mime) throw new Error('Deze browser ondersteunt geen video-opname. Kies Afbeelding of probeer Chrome of Edge.');
+    if(!brand || !image) throw new Error('Selecteer eerst een merk en een merkbeeld.');
+    if(![3,4,5].includes(seconds)) throw new Error('Kies een duur van 3, 4 of 5 seconden.');
+    if(!['zoom-in','zoom-out','pan-right','pan-left'].includes(motion)) throw new Error('Kies een ondersteunde bewegingsstijl.');
+    if(!format.width || !format.height || PLATFORM_LIMITS[platform]?.mock!=='social') throw new Error('Kies voor video een Instagram-/Facebook-bericht, verhaal of TikTok-formaat. Afbeeldingen genereren blijft beschikbaar voor dit formaat.');
     const stage=job.stage=document.createElement('div');
     stage.style.cssText='position:fixed;left:-10000px;top:0;width:320px;pointer-events:none;';
     stage.setAttribute('aria-hidden','true');stage.inert=true;
@@ -169,16 +169,16 @@ async function generateAnimatedAd(){
     animatedVideoUrl=URL.createObjectURL(blob);
     const extension=blob.type.startsWith('video/mp4')?'mp4':'webm';
     const results=document.getElementById('resultsArea');
-    results.innerHTML=`<div class="video-result"><video id="animatedVideoPreview" class="video-preview" autoplay muted loop playsinline controls aria-label="Animated advertisement preview"></video><a id="animatedVideoDownload" class="card-dl-btn">Download Video (${extension.toUpperCase()})</a></div>`;
+    results.innerHTML=`<div class="video-result"><video id="animatedVideoPreview" class="video-preview" autoplay muted loop playsinline controls aria-label="Voorbeeld van bewegende advertentie"></video><a id="animatedVideoDownload" class="card-dl-btn">Video downloaden (${extension.toUpperCase()})</a></div>`;
     const preview=document.getElementById('animatedVideoPreview');
     preview.muted=true;preview.src=animatedVideoUrl;preview.play()?.catch(()=>{});
     const download=document.getElementById('animatedVideoDownload');
     download.href=animatedVideoUrl;download.download=`${brand}-${format.value}-${seconds}s.${extension}`;
-    document.getElementById('outputMeta').textContent=`${seconds} seconds · ${format.width} × ${format.height} · ${extension.toUpperCase()}`;
+    document.getElementById('outputMeta').textContent=`${seconds} seconden · ${format.width} × ${format.height} · ${extension.toUpperCase()}`;
   }catch(error){
     if(!job.cancelled){
-      document.getElementById('resultsArea').innerHTML=`<div class="error-box" role="alert">${escapeHtml(error.message)} <button type="button" class="card-dl-btn" onclick="generateAds()">Retry</button></div>`;
-      document.getElementById('outputMeta').textContent='Video failed';
+      document.getElementById('resultsArea').innerHTML=`<div class="error-box" role="alert">${escapeHtml(error.message)} <button type="button" class="card-dl-btn" onclick="generateAds()">Opnieuw proberen</button></div>`;
+      document.getElementById('outputMeta').textContent='Video mislukt';
       if(animatedVideoUrl){URL.revokeObjectURL(animatedVideoUrl);animatedVideoUrl=null;}
     }
   }finally{

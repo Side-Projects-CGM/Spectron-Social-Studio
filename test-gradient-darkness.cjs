@@ -10,8 +10,8 @@ const gradient='linear-gradient(to bottom, transparent 25%, rgba(0,0,0,.24) 50%,
 const resolvedPage=page.replace(/var\(--(artwork-scrim-[\w-]+)\)/g,(_,name)=>page.match(new RegExp(`--${name}:([^;]+);`))[1]);
 assert.equal(resolvedPage.split(gradient).length-1,2,'Live and saved gradients retain their original direction/stops');
 assert.match(page,/\.scrim,\.saved-shade\{opacity:calc\(var\(--gradient-darkness, \.25\) \* 1\.1363636363636364\);\}/);
-assert.match(page,/<label for="gradientDarkness">Gradient darkness <span id="gradientDarknessValue">25%<\/span>/);
-assert.match(page,/<input type="range" id="gradientDarkness" min="0" max="60" step="5" value="25" aria-label="Gradient darkness" aria-valuemin="0" aria-valuemax="60" aria-valuenow="25" oninput="applyGradientDarkness\(\)">/);
+assert.match(page,/<label for="gradientDarkness">Donkerte van kleurverloop <span id="gradientDarknessValue">25%<\/span>/);
+assert.match(page,/<input type="range" id="gradientDarkness" min="0" max="60" step="5" value="25" aria-label="Donkerte van kleurverloop" aria-valuemin="0" aria-valuemax="60" aria-valuenow="25" oninput="applyGradientDarkness\(\)">/);
 for(const value of [25,0,60,10,45]){
  controls.gradientDarkness.value=value;run('applyGradientDarkness()');
  assert.equal(controls.gradientDarknessValue.textContent,`${value}%`);
