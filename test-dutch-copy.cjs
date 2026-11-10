@@ -14,7 +14,7 @@ for (const path of ['spectron-social-studio.html', 'usage.html', 'veo-test.html'
 
 test('video confirmation, recovery and pending state are Dutch without a generation request', async () => {
   const elements = {aiVideoConfirmModal:{hidden:true}, aiVideoConfirmButton:{focus(){}},
-    aiVideoCancelButton:{}, aiVideoRetryWarning:{}, outputMeta:{}, resultsArea:{}, generateAIVideoBtn:{}};
+    aiVideoCancelButton:{}, aiVideoRetryWarning:{}, aiVideoPreviousButton:{hidden:true}, outputMeta:{}, resultsArea:{}, generateAIVideoBtn:{}};
   let reads = 0;
   const context = vm.createContext({
     document:{getElementById:id=>elements[id]}, window:{addEventListener(){}, sessionStorage:{getItem:()=>JSON.stringify({operation:'interactions/mock-dutch',aspectRatio:'9:16'})}},
@@ -29,9 +29,9 @@ test('video confirmation, recovery and pending state are Dutch without a generat
   assert.equal(await confirmed, false);
   assert.equal(reads, 0);
   context.restoreAIVideoRecovery();
-  assert.match(elements.resultsArea.innerHTML, /Bestaande aanvraag controleren/);
-  assert.match(elements.resultsArea.innerHTML, /Nieuwe betaalde video \(bevestiging vereist\)/);
-  await context.resumeAIVideo();
+  assert.equal(elements.resultsArea.innerHTML, undefined);
+  assert.equal(elements.aiVideoPreviousButton.hidden, false);
+  await context.openPreviousAIVideo();
   assert.equal(elements.outputMeta.textContent, 'AI-video — in behandeling');
   assert.equal(reads, 1, 'Only the existing request status is read');
 });

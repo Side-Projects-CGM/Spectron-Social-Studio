@@ -70,10 +70,22 @@ async function runSelectedImageTests(browser, baseUrl = 'http://localhost:8890')
       await page.getByRole('button',{name:'Bestaande aanvraag controleren / Voorbeeld opnieuw laden',exact:true}).click();
       assert.equal(requests.length,2,'Explicit recovery remains GET-only');
       assert.equal(reads.at(-1),'interactions/mock-photo-2');
+      const readsBeforeRefresh = reads.length;
       await page.reload({waitUntil:'networkidle'});
       assert.equal(requests.length,2,'Refresh cannot submit a new generation');
-      await page.getByRole('button',{name:'Bestaande aanvraag controleren / Voorbeeld opnieuw laden',exact:true}).click();
+      assert.equal(reads.length,readsBeforeRefresh,'Refresh must not poll automatically');
+      assert.equal(await page.locator('#workspaceOutput').isVisible(),false);
+      assert.equal(await page.locator('#resultsArea').textContent(),'');
+      assert.equal(await page.locator('#aiVideoPreviousButton').isVisible(),false,'Recovery stays inside video controls');
+      await page.selectOption('#brand','Bluey');
+      await page.locator('#imgGallery .img-thumb').first().click();
+      await page.locator('#chooseVideo').click();
+      assert.equal(await page.locator('#resultsArea').textContent(),'');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      await page.getByRole('button',{name:'Vorige video bekijken',exact:true}).click();
+      await page.waitForFunction(()=>!aiVideoRunning);
       assert.equal(requests.length,2,'Recovery after refresh still cannot submit a new generation');
+      await page.locator('#workflowBack').click();
       await page.selectOption('#brand','Bluey');
       const upload = await page.evaluate(()=>{
         const canvas=document.createElement('canvas');canvas.width=320;canvas.height=240;

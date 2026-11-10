@@ -10,6 +10,7 @@ const AI_VIDEO_OPERATION_PATTERN=/^(?:interactions\/[A-Za-z0-9_-]{1,2048}|operat
 let aiVideoOperation='';
 /** Persist only the provider reference, orientation and an empty-ID submission marker. */
 function saveAIVideoRecovery(){
+  updateAIVideoRecoveryButton();
   try{
     if(!window.sessionStorage){console.warn('[ai-video] Request recovery storage unavailable; keep this tab open.');return;}
     window.sessionStorage.setItem(AI_VIDEO_RECOVERY_KEY,JSON.stringify({
@@ -31,9 +32,18 @@ function restoreAIVideoRecovery(){
     aiVideoOperation=saved.operation;
     aiVideoRequestedRatio=saved.aspectRatio;
     aiVideoMayHaveStarted=true;
-    if(aiVideoOperation)showAIVideoRecovery('Er is een bestaande videoaanvraag beschikbaar. Controleer de status of het voorbeeld zonder een nieuwe video te starten.');
-    else showAIVideoRecovery('Een eerdere aanvraag is mogelijk gestart, maar er is geen aanvraagnummer ontvangen. Neem contact op met de ondersteuning voordat je een nieuwe betaalde aanvraag start.');
+    updateAIVideoRecoveryButton();
   }catch(error){console.warn('[ai-video] Request recovery metadata could not be read.');}
+}
+function updateAIVideoRecoveryButton(){
+  const button=aiVideoEl('aiVideoPreviousButton');
+  if(button)button.hidden=!aiVideoOperation&&!aiVideoMayHaveStarted;
+}
+// Restore silently; only an explicit click may reveal recovery or read status.
+async function openPreviousAIVideo(){
+  if(aiVideoRunning||aiVideoConfirmPending)return;
+  if(aiVideoOperation){await resumeAIVideo();return;}
+  if(aiVideoMayHaveStarted)showAIVideoRecovery('Een eerdere aanvraag is mogelijk gestart, maar er is geen aanvraagnummer ontvangen. Neem contact op met de ondersteuning voordat je een nieuwe betaalde aanvraag start.');
 }
 // Keep the submitted orientation independent of later selector changes.
 let aiVideoRequestedRatio='9:16';
@@ -100,7 +110,7 @@ function showAIVideoError(message){
 }
 /** @param {string} message @param {string} title @param {boolean} canResume */
 function showAIVideoRecovery(message,title='AI-video — statuscontrole onderbroken',canResume=true){
-  // Recovery can run on page load, before generation has revealed the output.
+  // Explicit recovery can run before generation has revealed the output.
   const output=aiVideoEl('workspaceOutput');if(output)output.hidden=false;
   const placeholder=aiVideoEl('workspacePlaceholder');if(placeholder)placeholder.hidden=true;
   const imagePreview=aiVideoEl('workspaceImagePreview');if(imagePreview)imagePreview.hidden=true;

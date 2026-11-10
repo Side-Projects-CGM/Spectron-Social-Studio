@@ -11,7 +11,7 @@ const json = value => Response.json(value);
 function browser(storage = new Map()) {
   const elements = {
     aiVideoAspect:{value:'9:16'}, aiVideoPrompt:{value:'private prompt'}, aiVideoNoImage:{},
-    generateAIVideoBtn:{}, outputMeta:{}, resultsArea:{}, aiVideoAgain:{},
+    generateAIVideoBtn:{}, outputMeta:{}, resultsArea:{}, aiVideoAgain:{}, aiVideoPreviousButton:{hidden:true},
     workspaceOutput:{hidden:true}, workspacePlaceholder:{hidden:false}, workspaceImagePreview:{hidden:false},
     aiVideoPreview:{dataset:{}, addEventListener(){}, load(){this.loaded = true;}},
     aiVideoPreviewError:{hidden:true}, aiVideoConfirmModal:{hidden:true},
@@ -125,15 +125,17 @@ test('accepted ID is stored with orientation only; submission/polling block dupl
   assert.equal(starts(state), 1, 'polling also blocks starts');
 });
 
-test('refresh offers recovery; retry checks the ID without image or paid confirmation', async () => {
+test('refresh stays quiet; previous-video action checks the ID without image or paid confirmation', async () => {
   const state = browser(); recover(state);
   assert.equal(state.calls.length, 0, 'restore does not submit or poll automatically');
-  assert.equal(state.elements.workspaceOutput.hidden, false, 'recovery is visible after refresh');
-  assert.equal(state.elements.workspacePlaceholder.hidden, true);
-  assert.equal(state.elements.workspaceImagePreview.hidden, true);
+  assert.equal(state.elements.workspaceOutput.hidden, true, 'refresh must not reveal the output');
+  assert.equal(state.elements.workspacePlaceholder.hidden, false);
+  assert.equal(state.elements.workspaceImagePreview.hidden, false);
+  assert.equal(state.elements.resultsArea.innerHTML, undefined);
+  assert.equal(state.elements.aiVideoPreviousButton.hidden, false);
   state.context.selectedImage = null;
   state.respond = () => json({state:'pending'});
-  await state.context.generateAIVideo();
+  await state.context.openPreviousAIVideo();
   assert.equal(starts(state), 0);
   assert.match(state.calls[0].url, /operation=interactions%2Fmock-recovery$/);
   assert.match(state.elements.outputMeta.textContent, /in behandeling/);
@@ -232,8 +234,16 @@ test('lost start response stores only an uncertainty marker; refresh never resub
   assert.doesNotMatch(state.elements.resultsArea.innerHTML, /resumeAIVideo/);
   const refreshed = browser(state.storage);
   refreshed.context.restoreAIVideoRecovery();
+  assert.equal(refreshed.elements.resultsArea.innerHTML, undefined);
+  assert.equal(refreshed.elements.workspaceOutput.hidden, true);
+  assert.equal(refreshed.elements.aiVideoPreviousButton.hidden, false);
+  await refreshed.context.openPreviousAIVideo();
   assert.match(refreshed.elements.resultsArea.innerHTML, /geen aanvraagnummer/);
   assert.equal(refreshed.calls.length, 0);
+  const cancelled = refreshed.context.generateAIVideo(true);
+  assert.equal(refreshed.elements.aiVideoRetryWarning.hidden, false);
+  refreshed.elements.aiVideoCancelButton.onclick();
+  await cancelled;
   await refreshed.context.resumeAIVideo();
   assert.equal(refreshed.calls.length, 0);
 });
@@ -244,7 +254,9 @@ test('invalid, missing or blocked sessionStorage cannot crash or trigger a reque
     JSON.stringify({operation:OPERATION, aspectRatio:'4:3'})]) {
     const state = browser(new Map([[KEY, raw]]));
     assert.doesNotThrow(() => state.context.restoreAIVideoRecovery());
-    await state.context.resumeAIVideo();
+    await state.context.openPreviousAIVideo();
+    assert.equal(state.elements.aiVideoPreviousButton.hidden, true);
+    assert.equal(state.elements.workspaceOutput.hidden, true);
     assert.equal(state.calls.length, 0);
     assert.doesNotMatch(state.warnings.join(' '), /private.test/);
   }
