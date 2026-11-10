@@ -36,4 +36,25 @@ function failureDetails(result) {
   return {reason, message, category:contentFiltered ? 'content-filter' : 'generation-failed'};
 }
 
-module.exports = {failureDetails};
+// Allowlist error fields only: never persist inputs, model output or media.
+function interactionFailureDetails(result) {
+  function safe(value, limit) {
+    if (typeof value !== 'string' && typeof value !== 'number') return '';
+    const text = String(value)
+      .replace(/((?:api[_ -]?key|key|token|authorization|credential|password|prompt)\s*["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,;}]+)/gi, '$1[redacted]')
+      .replace(/Bearer\s+[^\s,"'}]+/gi, 'Bearer [redacted]')
+      .replace(/https?:\/\/[^\s"'<>]+|data:[^\s"'<>]+/gi, '[redacted]')
+      .replace(/[A-Za-z0-9+/=_-]{128,}/g, '[redacted]');
+    return redact(text).replace(/[\r\n\t\x00-\x1f\x7f]/g, ' ').slice(0, limit);
+  }
+  const errors = [...(Array.isArray(result?.errors) ? result.errors : []), result?.error]
+    .filter(error => typeof error === 'string' || (error && typeof error === 'object'))
+    .slice(0, 5)
+    .map(error => typeof error === 'string' ? {message:safe(error, 800)}
+      : {code:safe(error.code, 96), status:safe(error.status, 96), message:safe(error.message, 800)});
+  return {reason:JSON.stringify({status:safe(result?.status, 96), errors,
+    ...(!errors.some(error => error.code || error.status || error.message)
+      ? {reason:'Google reported failure without an error reason.'} : {})})};
+}
+
+module.exports = {failureDetails, interactionFailureDetails};

@@ -70,6 +70,36 @@ test('Veo joins completion by operation, counts starts once and never turns poll
  reply={name:'operations/video-3'};await t.trackedFetch({}, {...base,requestType:'generate',durationSeconds:4,requestedSeconds:4},'mock',{});
  summary=summarize([...m.records.values()]);assert.equal(summary.totals.veo.failed,1);assert.equal(summary.totals.veo.pending,1);assert.equal(summary.totals.veo.estimatedCompletedSeconds,4);
 });
+test('Omni failed reads retain sanitised diagnostics privately without retries', async () => {
+ const m=memory();let calls=0;
+ const payload={status:'failed', errors:[{code:'RESOURCE_EXHAUSTED',message:'Quota exhausted. password="fake password with spaces" https://private.test data:image/png;base64,ZmFrZQ==',details:{token:'nested-private'}}],
+   steps:[{type:'model_output',content:[{type:'text',text:'private-output'}]}]};
+ const tracker=createTracker({storeFactory:()=>m.store,fetcher:async()=>{calls++;return json(payload);},logger:quiet});
+ const base={provider:'veo',feature:'ai-video',requestType:'status',operation:'interactions/mock-failed'};
+ const response=await tracker.trackedFetch({},base,'mock',{});
+ assert.deepEqual(await response.json(),payload);
+ assert.equal(calls,1);
+ const result=[...m.records.values()].find(r=>r.phase==='result');
+ assert.equal(result.operationState,'failed');
+ assert.match(result.failureReason,/RESOURCE_EXHAUSTED|Quota exhausted/);
+ assert.doesNotMatch(result.failureReason,/fake password|private.test|ZmFrZQ|nested-private|private-output/);
+ assert.doesNotMatch(JSON.stringify(summarize([...m.records.values()])),/failureReason|Quota exhausted|RESOURCE_EXHAUSTED/);
+});
+
+test('Omni diagnostics handle absent, legacy and oversized errors without inventing quota', () => {
+ const {interactionFailureDetails}=require('./netlify/lib/veo-failure.cjs');
+ const absent=JSON.parse(interactionFailureDetails({status:'failed'}).reason);
+ assert.equal(absent.status,'failed');
+ assert.deepEqual(absent.errors,[]);
+ assert.match(absent.reason,/without an error reason/);
+ const legacy=JSON.parse(interactionFailureDetails({status:'failed',error:{code:500,message:'Worker failed'}}).reason);
+ assert.equal(legacy.errors[0].code,'500');
+ assert.equal(legacy.errors[0].message,'Worker failed');
+ const large=interactionFailureDetails({status:'failed',errors:Array.from({length:100},()=>({code:'INTERNAL',message:'x'.repeat(10000)}))}).reason;
+ assert.ok(large.length<6000);
+ assert.equal(JSON.parse(large).errors.length,5);
+});
+
 test('daily and Monday weekly boundaries use Johannesburg; result wins over late request; environments are isolated',()=>{
  const r={version:1,id:'a',...details,timestamp:'2026-10-04T22:30:00Z',phase:'result',outcome:'succeeded',tokens:tokens(data)};
  const s=summarize([r,{...r,phase:'request',outcome:'unknown',tokens:undefined}]);

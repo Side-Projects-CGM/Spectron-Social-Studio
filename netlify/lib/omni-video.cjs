@@ -3,6 +3,7 @@
 /** @typedef {import('./video-response.cjs').VideoContent} VideoContent */
 
 const { trackedFetch } = require('./usage.cjs');
+const { interactionFailureDetails } = require('./veo-failure.cjs');
 const { INTERACTION_PATTERN, interactionVideo, interactionState } = require('./video-response.cjs');
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const REQUEST_TIMEOUT_MS = 20000;
@@ -111,7 +112,12 @@ async function status(event, feature) {
     const operation = event.queryStringParameters.operation;
     if (state === 'unknown') return reply(502, {state, operation, category:'monitoring-interrupted',
       error:'De videostatus kon niet worden bepaald. Controleer deze bestaande aanvraag opnieuw; er is geen nieuwe video gestart.'});
-    if (state === 'failed') return reply(200, {...failedGeneration(data), operation});
+    if (state === 'failed') {
+      const failure = failedGeneration(data);
+      console.warn('[omni] Video generation failed', {operation, category:failure.category,
+        reason:interactionFailureDetails(data).reason});
+      return reply(200, {...failure, operation});
+    }
     if (state === 'completed' && !interactionVideo(data)) return reply(200, {state, operation,
       outputAvailable:false, category:'output-unavailable', message:unavailableOutputMessage()});
     return reply(200, {state, operation, ...(state === 'completed' ? {outputAvailable:true, videoReference:operation} : {})});

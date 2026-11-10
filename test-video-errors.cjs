@@ -39,6 +39,25 @@ for (const [code, category, message] of [
   assert.match(JSON.parse(download.body).error, message);
 });
 
+test('failed status logs bounded diagnostics, not credentials, images or model output', async () => {
+  const warnings = [];
+  const warn = console.warn;
+  payload = {status:'failed', errors:[{code:'INTERNAL', message:'Render worker failed. token="fake token with spaces" https://private.test/key data:image/png;base64,ZmFrZQ== mock-video-errors-only', details:{password:'nested-private'}}],
+    input:'private-input', steps:[{type:'model_output',content:[{type:'text',text:'private-model-output'},{type:'video',data:'private-video'}]}]};
+  try {
+    console.warn = (...args) => warnings.push(args);
+    const before = calls;
+    const response = await service.status(event, 'ai-video');
+    assert.equal(calls, before + 1, 'diagnostics must not trigger another provider request');
+    assert.equal(JSON.parse(response.body).category, 'generation-failed');
+    assert.equal(warnings.length, 1);
+    const logged = JSON.stringify(warnings);
+    assert.match(logged, /INTERNAL|Render worker failed/);
+    assert.doesNotMatch(logged, /fake token|private\.test|ZmFrZQ|mock-video-errors-only|nested-private|private-input|private-model-output|private-video/);
+    assert.doesNotMatch(response.body, /Render worker|INTERNAL|reason/);
+  } finally { console.warn = warn; }
+});
+
 test('completed text-only output stays recoverable without exposing the model response', async () => {
   payload = {status:'completed', steps:[{type:'model_output', content:[
     {type:'text', text:'I cannot generate this due to third-party content guardrails. private prompt'}

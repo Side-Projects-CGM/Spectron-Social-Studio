@@ -1,4 +1,4 @@
-const { failureDetails } = require('./veo-failure.cjs');
+const { failureDetails, interactionFailureDetails } = require('./veo-failure.cjs');
 const { INTERACTION_PATTERN, INTERACTION_ID_PATTERN, interactionState, interactionVideo } = require('./video-response.cjs');
 const { randomUUID } = require('node:crypto');
 const { getStore, connectLambda } = require('@netlify/blobs');
@@ -51,6 +51,7 @@ function responseDetails(base, response, data) {
   if (base.requestType === 'status' && response.ok && INTERACTION_PATTERN.test(base.operation || '')) {
     result.operationState = interactionState(data);
     result.videoCount = result.operationState === 'completed' && interactionVideo(data) ? 1 : 0;
+    if (result.operationState === 'failed') result.failureReason = interactionFailureDetails(data).reason;
   } else if (base.requestType === 'status' && response.ok) {
     const samples = data?.response?.generateVideoResponse?.generatedSamples || data?.response?.generatedVideos;
     result.videoCount = Array.isArray(samples) ? samples.filter(s => s?.video?.uri).length : 0;
