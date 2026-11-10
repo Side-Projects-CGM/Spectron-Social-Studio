@@ -1,5 +1,5 @@
 'use strict';
-const DEFAULT_AI_VIDEO_PROMPT='Create a professional four-second product showcase. Preserve the product’s exact appearance, colours, branding and proportions. Add subtle natural movement and a slow cinematic camera push-in. Keep the product clearly visible. Do not introduce new text, logos, products, people or objects.';
+const DEFAULT_AI_VIDEO_PROMPT='Create a professional eight-second product showcase. Preserve the product’s exact appearance, colours, branding and proportions. Add subtle natural movement and a slow cinematic camera push-in. Keep the product clearly visible. Do not introduce new text, logos, products, people or objects.';
 const MAX_VEO_IMAGE_BYTES=12*1024*1024;
 let aiVideoRunning=false,aiVideoPollTimer=0,aiVideoPollStarted=0,aiVideoUrl='',aiVideoPreviewUrl='';
 const AI_VIDEO_SERVER_ERROR='The video service returned an unexpected server response. Please try again or contact support.';

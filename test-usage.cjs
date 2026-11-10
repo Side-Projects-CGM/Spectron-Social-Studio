@@ -123,8 +123,11 @@ test('real Netlify Blobs SDK: legacy event, persistent disk store, new client, a
   assert.equal((await require('./netlify/functions/start-veo-video.cjs').handler(videoEvent)).statusCode,202);
   const statusEvent={...event,httpMethod:'GET',queryStringParameters:{operation:'interactions/test-video'}};
   for(let i=0;i<2;i++)assert.equal((await require('./netlify/functions/veo-video-status.cjs').handler(statusEvent)).statusCode,200);
-  assert.equal((await require('./netlify/functions/download-veo-video.cjs').handler(statusEvent)).statusCode,200);
-  const summary=await readSummary(event);assert.equal(summary.totals.gemini.attempts,2);assert.equal(summary.totals.gemini.totalTokens,70);
+  assert.equal((await require('./netlify/functions/download-veo-video.cjs').download(statusEvent)).statusCode,200);
+  const summary=await readSummary(event);
+  assert.equal(summary.totals.veo.requestedSeconds,8);
+  assert.equal(summary.totals.veo.estimatedCompletedSeconds,8);
+  assert.equal(summary.totals.gemini.attempts,2);assert.equal(summary.totals.gemini.totalTokens,70);
   assert.equal(summary.features['ai-background'].gemini.attempts,1);assert.equal(summary.features['ai-video'].veo.completed,1);assert.equal(summary.totals.veo.attempts,1);assert.equal(summary.totals.veo.statusCalls,3);assert.equal(apiCalls,7);
   const handler=createHandler({password:()=> 'test-password'});
   const dashboard=await handler({...event,httpMethod:'GET',headers:{...event.headers,authorization:'Basic '+Buffer.from('usage:test-password').toString('base64')}});

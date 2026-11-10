@@ -223,7 +223,7 @@ download requests are still supported.
 The server uses the Gemini Interactions REST API (revision `2026-05-20`):
 
 1. `start-veo-video` makes one `POST /v1beta/interactions` with `background: true`,
-   the selected image and prompt, and a video response format (4 seconds, 720p,
+   the selected image and prompt, and a video response format (8 seconds, 720p,
    selected aspect ratio). It returns HTTP 202 with `interactions/<id>` without
    waiting for generation or retrying the paid request.
 2. The browser polls `veo-video-status` every 10 seconds, up to seven minutes.
@@ -233,8 +233,25 @@ The server uses the Gemini Interactions REST API (revision `2026-05-20`):
    is read from `steps[].content[]`, not the SDK-only `output_video` field.
    Google currently returns inline base64 on interaction GET, even when URI
    delivery was requested. Both inline and Google Files URI downloads are handled.
-   Binary output is capped at 4 MiB to fit Netlify's buffered response limit;
-   larger videos receive a friendly error rather than an oversized function response.
+   The two download functions use Netlify's v2 Request/Response API and return
+   a raw MP4 ReadableStream at the existing URLs. Media is bounded and validated
+   before response headers are sent; outgoing chunks avoid the base64 response
+   envelope and Netlify's 6 MB buffered-response limit. Downloads are capped at
+   18 MiB, below the 20 MB streaming limit. Google Files downloads stop reading
+   when that cap is exceeded, even if Content-Length is missing or incorrect.
+   Inline base64 output is checked before decoding. Upstream media is still
+   buffered in memory for validation; this is not permanent video storage.
+   The existing video/unknown MP4 file-type validation and request recovery remain.
+
+Omni 1.1 Flash supports 3–10 second outputs, so eight seconds does not require a
+model upgrade. The model ID stays `gemini-omni-1.1-flash`; image upload and
+image-to-video behaviour are unchanged. At the documented 720p output rate,
+eight seconds costs approximately $0.81 before input/other token charges.
+A future switch to `gemini-omni-1.2-flash` requires updating the model ID and
+running regression checks plus a separately approved paid visual test. Google
+currently documents automatic routing of the 1.1 ID to 1.2 on December 3, 2026.
+See [model limits](https://ai.google.dev/gemini-api/docs/models/gemini-omni-flash)
+and [Netlify streaming](https://docs.netlify.com/build/functions/api/#streaming-responses).
 
 Video functions read `GOOGLE_DEVELOPER_API_KEY`, falling back to the existing
 `GEMINI_API_KEY`, exclusively from server environment variables. Set these in
