@@ -22,7 +22,7 @@ test('video confirmation, recovery and pending state are Dutch without a generat
     fetch:async()=>{reads++;return Response.json({state:'pending'});}
   });
   vm.runInContext(fs.readFileSync('ai-video.js', 'utf8'), context);
-  assert.match(vm.runInContext('DEFAULT_AI_VIDEO_PROMPT', context), /^Maak een professionele/);
+  assert.equal(vm.runInContext('DEFAULT_AI_VIDEO_PROMPT', context), "Maak een vrolijke, professionele reclamevideo van acht seconden voor sociale media. Het product uit de foto is de ster: behoud het exacte uiterlijk, de kleuren, het merk en de verhoudingen, en houd het de hele video duidelijk en scherp in beeld. Laat het product op een speelse, natuurlijke manier bewegen of gebruiken, met een vloeiende filmische camerabeweging. Voeg passende vrolijke achtergrondmuziek en geluidseffecten toe. Als er een persoon spreekt, spreekt die duidelijk Nederlands. Voeg geen tekst of logo's toe.");
   const confirmed = context.requestAIVideoConfirmation();
   assert.equal(elements.aiVideoConfirmButton.textContent, 'Video genereren');
   elements.aiVideoCancelButton.onclick();
