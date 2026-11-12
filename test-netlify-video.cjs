@@ -6,8 +6,10 @@ const STARTUP_TIMEOUT_MS = 90000;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const windows = process.platform === 'win32';
 const cliPath = windows ? path.join(process.env.APPDATA, 'npm/node_modules/netlify-cli/bin/run.js') : null;
+// Explicit paths keep nested worktrees from serving a parent project's files.
+const servingPaths = ['--dir', process.cwd(), '--functions', path.resolve('netlify/functions')];
 const child = spawn(windows ? process.execPath : 'netlify',
-  windows ? [cliPath, 'dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002'] : ['dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002'], {
+  windows ? [cliPath, 'dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002', ...servingPaths] : ['dev', '--offline', '--port', '8899', '--staticServerPort', '4001', '--functions-port', '4002', ...servingPaths], {
     env:{...process.env, GOOGLE_DEVELOPER_API_KEY:'mock-only-not-a-real-google-key',
       NODE_OPTIONS:`--require="${path.resolve('mock-video-network.cjs').split(path.sep).join('/')}"`},
     stdio:['ignore', 'pipe', 'pipe']

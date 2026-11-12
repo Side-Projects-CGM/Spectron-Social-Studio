@@ -687,3 +687,18 @@ body{background:#d8d3cc!important;}
   .wrap{height:auto;min-height:100dvh;overflow:visible;}
   .studio-shell{height:560px;}
 }
+
+/* Let long control flows grow the document instead of trapping sidebar scroll. */
+html,body{height:auto;overflow:visible;}
+.wrap{height:auto;min-height:100dvh;overflow:visible;}
+.studio-shell{height:auto;overflow:visible;}
+.workflow-panel{
+  position:static!important;top:auto!important;height:auto;max-height:none;
+  overflow:visible;overscroll-behavior:auto;
+}
+.workspace-canvas{height:auto;overflow:visible;overscroll-behavior:auto;}
+
+/* Keep new-video and previous-video actions on separate, comfortably spaced rows. */
+#aiVideoOptions>#generateAIVideoBtn,#aiVideoOptions>#aiVideoPreviousButton{
+  display:block;width:100%;min-height:48px;margin:12px 0 0;white-space:normal;
+}

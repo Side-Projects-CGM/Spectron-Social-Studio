@@ -68,6 +68,7 @@ async function runSelectedImageTests(browser, baseUrl = 'http://localhost:8890')
       await generateCurrent();
       assert.notEqual(requests[0].imageHash,requests[1].imageHash,'Changing the gallery photo changes the submitted image');
       await page.getByRole('button',{name:'Bestaande aanvraag controleren / Voorbeeld opnieuw laden',exact:true}).click();
+      await page.waitForFunction(()=>!aiVideoRunning);
       assert.equal(requests.length,2,'Explicit recovery remains GET-only');
       assert.equal(reads.at(-1),'interactions/mock-photo-2');
       const readsBeforeRefresh = reads.length;
