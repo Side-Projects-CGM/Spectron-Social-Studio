@@ -1426,7 +1426,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 .error-box{background:var(--brand-white);border-color:var(--brand-error);color:var(--brand-error);}
 
 </style>
-<link rel="stylesheet" href="studio-design.css?v=compact-sliders-2">
+<link rel="stylesheet" href="studio-design.css?v=product-references-1">
 </head>
 <body>
 <div class="wrap">
@@ -1577,6 +1577,15 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
               <summary aria-label="Toon voorbeeld van het geselecteerde merkbeeld"><span aria-hidden="true"></span></summary>
               <img id="aiVideoSourcePreview" class="ai-video-source" alt="Geselecteerd merkbeeld voor de video" hidden>
             </details>
+            <div class="video-references" aria-label="Referentiefoto's voor de video">
+              <p class="video-reference-label">Referentiefoto's van je product</p>
+              <p id="aiVideoReferenceCount" class="video-reference-help" aria-live="polite">0 van 3 referentiefoto's</p>
+              <div id="aiVideoReferenceList" class="video-reference-list"></div>
+              <button type="button" class="upload-btn" id="aiVideoReferenceAdd">Referentiefoto's toevoegen</button>
+              <input type="file" id="aiVideoReferenceInput" accept="image/jpeg,image/png,image/webp" multiple hidden>
+              <p class="video-reference-help">Maximaal 3 foto's van hetzelfde product, samen 4 MiB. De geselecteerde productfoto telt mee. De volledige foto's worden als referentie gebruikt, niet als beginbeeld.</p>
+              <p id="aiVideoReferenceError" class="video-reference-error" role="alert" hidden></p>
+            </div>
             <label class="title" for="aiVideoPrompt">Omschrijf je video</label>
             <textarea id="aiVideoPrompt" rows="5" maxlength="4000"></textarea>
             <fieldset class="video-format-fieldset">
@@ -2873,7 +2882,8 @@ renderImageGallery();
 showWorkflowChooser();
 </script>
 <script src="animated-video.js?v=dutch-copy-1"></script>
-<script src="ai-video.js?v=dutch-copy-5"></script>
+<script src="ai-video-references.js"></script>
+<script src="ai-video.js?v=product-references-1"></script>
 <script src="ai-background.js?v=dutch-copy-4"></script>
 <script src="studio-library.js?v=dutch-word-wrap-1"></script>
 

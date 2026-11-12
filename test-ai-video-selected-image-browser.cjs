@@ -22,7 +22,7 @@ async function runSelectedImageTests(browser, baseUrl = 'http://localhost:8890')
       const url = new URL(route.request().url());
       if (url.pathname.endsWith('/start-veo-video')) {
         const body = route.request().postDataJSON();
-        requests.push({imageHash:createHash('sha256').update(body.image).digest('hex'),prompt:body.prompt,aspectRatio:body.aspectRatio});
+        requests.push({imageHash:createHash('sha256').update(body.images[0]).digest('hex'),prompt:body.prompt,aspectRatio:body.aspectRatio});
         return route.fulfill({status:202,contentType:'application/json',body:JSON.stringify({operation:`interactions/mock-photo-${requests.length}`})});
       }
       if (url.pathname.endsWith('/veo-video-status')) {

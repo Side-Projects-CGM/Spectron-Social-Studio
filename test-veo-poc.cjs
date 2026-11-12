@@ -21,7 +21,9 @@ const start = require('./netlify/functions/start-veo-video.cjs').handler;
 const status = require('./netlify/functions/veo-video-status.cjs').handler;
 const download = require('./netlify/functions/download-veo-video.cjs').download;
 const event = (method = 'GET', operation = 'interactions/mock') => ({httpMethod:method, queryStringParameters:{operation}});
-const input = {image:'data:image/png;base64,YWJj', prompt:'Product showcase', aspectRatio:'9:16'};
+const png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jK1sAAAAASUVORK5CYII=';
+const {REFERENCE_INSTRUCTION}=require('./netlify/lib/video-references.cjs');
+const input = {image:'data:image/png;base64,'+png, prompt:'Product showcase', aspectRatio:'9:16'};
 const post = body => ({httpMethod:'POST', body:JSON.stringify(body)});
 const read = response => JSON.parse(response.body);
 const completed = video => ({status:'completed', steps:[{type:'model_output', content:[{type:'video', mime_type:'video/mp4', ...video}]}]});
@@ -54,8 +56,7 @@ test('start submits exactly one background Omni interaction and returns immediat
   assert.equal(options.headers['Api-Revision'], '2026-05-20');
   assert.deepEqual(JSON.parse(options.body), {
     model:'gemini-omni-1.1-flash', background:true, store:true,
-    input:[{type:'image', data:'YWJj', mime_type:'image/png'}, {type:'text', text:'Product showcase'}],
-    generation_config:{video_config:{task:'image_to_video'}},
+    input:[{type:'image', data:png, mime_type:'image/png'}, {type:'text', text:'Product showcase\n\n'+REFERENCE_INSTRUCTION}],
     response_format:{type:'video', aspect_ratio:'9:16', duration:'8s', resolution:'720p', delivery:'uri'}
   });
   assert.equal(usage.summarize(records).totals.veo.submitted, 1);

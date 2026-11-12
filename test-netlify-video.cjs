@@ -37,7 +37,7 @@ async function waitForServer() {
 }
 async function start(prompt = 'mock:success') {
   return call('start-veo-video', {method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({image:'data:image/png;base64,YWJj', prompt, aspectRatio:'9:16'})});
+    body:JSON.stringify({image:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jK1sAAAAASUVORK5CYII=', prompt, aspectRatio:'9:16'})});
 }
 async function checkWorkflowAssets() {
   const response = await fetch(BASE); const html = await response.text();

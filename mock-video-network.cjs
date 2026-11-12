@@ -11,7 +11,10 @@ globalThis.fetch = async function(input, options = {}) {
     if (url.pathname === '/v1beta/interactions' && options.method === 'POST') {
       const body = JSON.parse(options.body);
       if (body.model !== 'gemini-omni-1.1-flash' || body.background !== true || body.response_format?.duration !== '8s') throw new Error('Invalid mocked Omni request');
-      const prompt = body.input.find(content => content.type === 'text')?.text;
+      if (body.generation_config !== undefined) throw new Error('Reference requests must not force first-frame mode');
+      const images = body.input.filter(content => content.type === 'image');
+      if (images.length < 1 || images.length > 3) throw new Error('Invalid mocked reference count');
+      const prompt = body.input.find(content => content.type === 'text')?.text?.split('\n\n')[0];
       if (prompt === 'mock:quota') return Response.json({error:{message:'private provider quota detail'}}, {status:429});
       if (prompt === 'mock:permission') return Response.json({error:{message:'private permission detail'}}, {status:403});
       const id = prompt === 'mock:pending' ? 'local-mock-pending' : prompt === 'mock:failed' ? 'local-mock-failed' : 'local-mock-video';

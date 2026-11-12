@@ -87,5 +87,5 @@ test('third-party guardrails produce a content-filter message and no one-click r
     assert.doesNotMatch(elements.resultsArea.innerHTML,/Opnieuw starten kan een extra betaalde video opleveren/);
     assert.equal(calls,1);
   }
-  assert.match(fs.readFileSync('spectron-social-studio.html','utf8'),/ai-video\.js\?v=dutch-copy-5/);
+  assert.match(fs.readFileSync('spectron-social-studio.html','utf8'),/ai-video\.js\?v=product-references-1/);
 });

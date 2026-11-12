@@ -149,7 +149,7 @@ test('real Netlify Blobs SDK: legacy event, persistent disk store, new client, a
   assert.equal(response.statusCode,200);assert.deepEqual(JSON.parse(response.body),data);
   const imageBody=JSON.stringify({image:'data:image/png;base64,iVBORw0KGgo=',description:'test background'});
   assert.equal((await require('./netlify/functions/generate-ai-image.cjs').handler({...event,body:imageBody})).statusCode,200);
-  const videoEvent={...event,body:JSON.stringify({image:'data:image/png;base64,YWJj',prompt:'test',aspectRatio:'9:16'})};
+  const videoEvent={...event,body:JSON.stringify({image:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jK1sAAAAASUVORK5CYII=',prompt:'test',aspectRatio:'9:16'})};
   assert.equal((await require('./netlify/functions/start-veo-video.cjs').handler(videoEvent)).statusCode,202);
   const statusEvent={...event,httpMethod:'GET',queryStringParameters:{operation:'interactions/test-video'}};
   for(let i=0;i<2;i++)assert.equal((await require('./netlify/functions/veo-video-status.cjs').handler(statusEvent)).statusCode,200);
