@@ -5,8 +5,10 @@ const vm=require('node:vm');
 const usage=require('./netlify/lib/usage.cjs');
 const source=fs.readFileSync('ai-video.js','utf8');
 const page=fs.readFileSync('spectron-social-studio.html','utf8');
+const png='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jK1sAAAAASUVORK5CYII=';
+const {REFERENCE_INSTRUCTION}=require('./netlify/lib/video-references.cjs');
 
-for(const ratio of ['9:16','16:9']) test(`${ratio}: selector, crop, start payload, tracking and preview retain submitted orientation`,async()=>{
+for(const ratio of ['9:16','16:9']) test(`${ratio}: selector, uncropped reference, start payload, tracking and preview retain submitted orientation`,async()=>{
  const records=[];const requests=[];
  const originalTracked=usage.trackedFetch;
  const originalKey=process.env.GEMINI_API_KEY;
@@ -24,7 +26,7 @@ for(const ratio of ['9:16','16:9']) test(`${ratio}: selector, crop, start payloa
   const start=require(wrapperPath).handler;
   const els={aiVideoAspect:{value:'9:16'},platform:{value:'landscape-platform'},outputType:{value:'ai-video'},aiVideoOptions:{},generateAIVideoBtn:{setAttribute(){}},aiVideoSourcePreview:{},aiVideoPrompt:{value:'Product showcase'},outputMeta:{},resultsArea:{innerHTML:''},aiVideoAgain:{},aiVideoPreview:{dataset:{},addEventListener(){},load(){}},aiVideoPreviewError:{hidden:true},aiVideoConfirmModal:{hidden:true},aiVideoConfirmButton:{focus(){}},aiVideoCancelButton:{}};
   let startCalls=0,draw,canvas;const timers=[];
-  const ctx=vm.createContext({document:{getElementById:id=>els[id],querySelectorAll:()=>[],createElement:()=>canvas={getContext:()=>({drawImage(...args){draw=args;}}),toBlob(fn,type){fn(new Blob(['cropped'],{type}));}}},window:{addEventListener(){}},selectedImage:'mock-image',getFormatSpec:()=>({width:1920,height:1080}),setAdGenerationState(){},escapeHtml:String,console,Date,Blob,URL:{createObjectURL:()=> 'blob:mock',revokeObjectURL(){}},setTimeout(fn){timers.push(fn);return timers.length;},clearTimeout(){},createImageBitmap:async()=>({width:1600,height:900,close(){}}),FileReader:class{readAsDataURL(blob){this.result=`data:${blob.type};base64,YWJj`;this.onload();}},fetch:async(url,options)=>{
+  const ctx=vm.createContext({document:{getElementById:id=>els[id],querySelectorAll:()=>[],createElement:()=>canvas={getContext:()=>({drawImage(...args){draw=args;}}),toBlob(fn,type){fn(new Blob(['cropped'],{type}));}}},window:{addEventListener(){}},selectedImage:'mock-image',getFormatSpec:()=>({width:1920,height:1080}),setAdGenerationState(){},escapeHtml:String,console,Date,Blob,URL:{createObjectURL:()=> 'blob:mock',revokeObjectURL(){}},setTimeout(fn){timers.push(fn);return timers.length;},clearTimeout(){},createImageBitmap:async()=>({width:1600,height:900,close(){}}),FileReader:class{readAsDataURL(blob){this.result=`data:${blob.type};base64,${png}`;this.onload();}},fetch:async(url,options)=>{
    if(url==='mock-image')return {blob:async()=>new Blob(['image'],{type:'image/png'})};
    if(url==='/.netlify/functions/start-veo-video'){
     startCalls++;assert.equal(JSON.parse(options.body).aspectRatio,ratio);
@@ -46,9 +48,11 @@ for(const ratio of ['9:16','16:9']) test(`${ratio}: selector, crop, start payloa
   await ctx.generateAIVideo();assert.equal(startCalls,1,'duplicate click during polling is ignored');
   assert.equal(requests[0].response_format.aspect_ratio,ratio);
   assert.equal(requests[0].response_format.duration,'8s');
-  assert.equal(requests[0].input[1].text,'Product showcase','Omni receives only the video textbox, without appended brand or product fields');
+  assert.equal(requests[0].input[1].text,'Product showcase\n\n'+REFERENCE_INSTRUCTION,'Only reference guidance is appended to the unchanged video textbox');
   assert.equal(requests[0].input[0].mime_type,'image/png');
-  if(ratio==='9:16'){assert.ok(Math.abs(canvas.width/canvas.height-9/16)<.002);assert.ok(draw[1]>0,'center crop without padding');}
+  assert.equal(canvas,undefined,'No crop canvas is created for either output orientation');
+  assert.equal(draw,undefined);
+  assert.equal(requests[0].input[0].data,png,'Full reference bytes reach Google unchanged');
   assert.equal(records.length,2);for(const record of records)assert.equal(record.aspectRatio,ratio);
   const summary=usage.summarize(records);assert.equal(summary.recent[0].aspectRatio,ratio);assert.equal(summary.totals.veo.attempts,1);
   ctx.selectAIVideoFormat(ratio==='9:16'?'16:9':'9:16');

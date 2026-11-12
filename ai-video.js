@@ -1,6 +1,6 @@
 'use strict';
 const DEFAULT_AI_VIDEO_PROMPT="Maak een vrolijke, professionele reclamevideo van acht seconden voor sociale media. Het product uit de foto is de ster: behoud het exacte uiterlijk, de kleuren, het merk en de verhoudingen, en houd het de hele video duidelijk en scherp in beeld. Laat het product op een speelse, natuurlijke manier bewegen of gebruiken, met een vloeiende filmische camerabeweging. Voeg passende vrolijke achtergrondmuziek en geluidseffecten toe. Als er een persoon spreekt, spreekt die duidelijk Nederlands. Voeg geen tekst of logo's toe.";
-const MAX_VEO_IMAGE_BYTES=12*1024*1024;
+const MAX_VEO_IMAGE_BYTES=4*1024*1024;
 let aiVideoRunning=false,aiVideoPollTimer=0,aiVideoPollStarted=0,aiVideoUrl='',aiVideoPreviewUrl='';
 const AI_VIDEO_SERVER_ERROR='De videodienst gaf een onverwacht serverantwoord. Probeer het opnieuw of neem contact op met de ondersteuning.';
 const AI_VIDEO_RETRY_WARNING='De vorige videoaanvraag is mogelijk al gestart. Opnieuw starten kan een extra betaalde video opleveren.';
@@ -87,13 +87,31 @@ async function readAIVideoDownload(response){
 function aiVideoEl(id){return document.getElementById(id);}
 function aiVideoFormatRatio(){return aiVideoEl('aiVideoAspect')?.value||'9:16';}
 function updateVideoMode(){const ai=aiVideoEl('outputType')?.value==='ai-video';const panel=aiVideoEl('aiVideoOptions');const old=aiVideoEl('videoOptions');if(old)old.hidden=true;if(panel)panel.hidden=!ai;const main=aiVideoEl('generateBtn');if(main)main.hidden=ai;const btn=aiVideoEl('generateAIVideoBtn');if(btn){btn.disabled=!ai||aiVideoRunning;btn.setAttribute('aria-disabled',String(btn.disabled));}if(ai){syncAIVideoImage();const ratio=aiVideoFormatRatio();if(aiVideoEl('aiVideoAspect'))aiVideoEl('aiVideoAspect').value=ratio;if(typeof syncStudioVideoFormatButtons==='function')syncStudioVideoFormatButtons(ratio);if(aiVideoEl('aiVideoSquareHint'))aiVideoEl('aiVideoSquareHint').hidden=!(getFormatSpec()?.width===getFormatSpec()?.height);} }
-window.syncAIVideoImage=function syncAIVideoImage(){const preview=aiVideoEl('aiVideoSourcePreview');const empty=aiVideoEl('aiVideoNoImage');if(preview){preview.src=selectedImage||'';preview.hidden=!selectedImage;}if(empty)empty.hidden=true;const btn=aiVideoEl('generateAIVideoBtn');if(btn)btn.disabled=aiVideoRunning;}
+window.syncAIVideoImage=function syncAIVideoImage(){window.aiVideoReferences?.syncSelectedImage(selectedImage);const preview=aiVideoEl('aiVideoSourcePreview');const empty=aiVideoEl('aiVideoNoImage');if(preview){preview.src=selectedImage||'';preview.hidden=!selectedImage;}if(empty)empty.hidden=true;const btn=aiVideoEl('generateAIVideoBtn');if(btn)btn.disabled=aiVideoRunning;}
 function clearAIVideoUrl(){if(aiVideoPreviewUrl){URL.revokeObjectURL(aiVideoPreviewUrl);aiVideoPreviewUrl='';}aiVideoUrl='';}
 function blobToDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('De geselecteerde afbeelding kon niet worden gelezen.'));reader.readAsDataURL(blob);});}
-async function normalizeAIVideoImage(targetRatio){if(!selectedImage)throw new Error('Selecteer eerst een merkbeeld.');let response;try{response=await fetch(selectedImage);}catch{throw new Error('Het geselecteerde merkbeeld is niet meer beschikbaar. Selecteer het opnieuw.');}let blob;try{blob=await response.blob();}catch{throw new Error('Het geselecteerde merkbeeld kon niet worden geladen.');}const allowed=['image/jpeg','image/png','image/webp'];if(!allowed.includes(blob.type))throw new Error('AI-video ondersteunt merkbeelden in JPEG-, PNG- en WebP-formaat.');if(!blob.size)throw new Error('Het geselecteerde merkbeeld is leeg.');const targetAspect=targetRatio==='9:16'?9/16:16/9;const bitmap=await createImageBitmap(blob).catch(()=>null);if(!bitmap)throw new Error('Het merkbeeld kon niet worden verwerkt. Selecteer een andere afbeelding.');if(bitmap){const sourceAspect=bitmap.width/bitmap.height;if(Math.abs(sourceAspect-targetAspect)>0.01||blob.size>MAX_VEO_IMAGE_BYTES){const cropWidth=sourceAspect>targetAspect?Math.round(bitmap.height*targetAspect):bitmap.width;const cropHeight=sourceAspect>targetAspect?bitmap.height:Math.round(bitmap.width/targetAspect);const cropX=Math.max(0,Math.round((bitmap.width-cropWidth)/2));const cropY=Math.max(0,Math.round((bitmap.height-cropHeight)/2));const scale=Math.min(1,Math.sqrt(MAX_VEO_IMAGE_BYTES/blob.size));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(cropWidth*scale));canvas.height=Math.max(1,Math.round(cropHeight*scale));canvas.getContext('2d').drawImage(bitmap,cropX,cropY,cropWidth,cropHeight,0,0,canvas.width,canvas.height);blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Het merkbeeld kon niet worden voorbereid.')),blob.type,.9));}bitmap.close?.();}if(blob.size>MAX_VEO_IMAGE_BYTES)throw new Error('Dit merkbeeld is na verkleining nog te groot. Kies een kleinere afbeelding.');const dataUrl=await blobToDataUrl(blob);const comma=dataUrl.indexOf(',');if(comma<0)throw new Error('Het geselecteerde merkbeeld heeft een ongeldig bestandsformaat.');return {mimeType:blob.type,data:dataUrl.slice(comma+1)};}
+async function normalizeAIVideoImage(targetRatio, source=selectedImage){
+  // Output orientation belongs to response_format. References retain all pixels.
+  if(!source)throw new Error('Selecteer eerst een merkbeeld.');
+  let response;
+  try{response=await fetch(source);}catch{throw new Error('Het geselecteerde merkbeeld is niet meer beschikbaar. Selecteer het opnieuw.');}
+  let blob;
+  try{blob=await response.blob();}catch{throw new Error('Het geselecteerde merkbeeld kon niet worden geladen.');}
+  if(!['image/jpeg','image/png','image/webp'].includes(blob.type))throw new Error('AI-video ondersteunt merkbeelden in JPEG-, PNG- en WebP-formaat.');
+  if(!blob.size)throw new Error('Het geselecteerde merkbeeld is leeg.');
+  if(blob.size>MAX_VEO_IMAGE_BYTES)throw new Error('De referentiefoto’s mogen samen maximaal 4 MiB zijn.');
+  const bitmap=await createImageBitmap(blob).catch(()=>null);
+  if(!bitmap)throw new Error('Het merkbeeld kon niet worden verwerkt. Selecteer een andere afbeelding.');
+  bitmap.close?.();
+  const dataUrl=await blobToDataUrl(blob);
+  const comma=dataUrl.indexOf(',');
+  if(comma<0)throw new Error('Het geselecteerde merkbeeld heeft een ongeldig bestandsformaat.');
+  return {mimeType:blob.type,data:dataUrl.slice(comma+1)};
+}
 /** @param {boolean} loading */
 function setAIVideoLoading(loading){
   aiVideoRunning=loading;
+  window.aiVideoReferences?.setBusy(loading);
   const btn=aiVideoEl('generateAIVideoBtn');
   if(btn){btn.disabled=loading;btn.textContent=loading?'Video wordt gegenereerd...':'Genereer mijn video';}
   setAdGenerationState(loading);
@@ -227,6 +245,10 @@ async function generateAIVideo(newRequest=false){
   if(aiVideoOperation&&!newRequest){await resumeAIVideo();return;}
   if(!selectedImage){const empty=aiVideoEl('aiVideoNoImage');if(empty)empty.hidden=false;return;}
   const empty=aiVideoEl('aiVideoNoImage');if(empty)empty.hidden=true;
+  if(window.aiVideoReferences){
+    try{window.aiVideoReferences.getSources();}
+    catch(error){window.aiVideoReferences.showError(error.message);return;}
+  }
   const confirmed=await requestAIVideoConfirmation();
   if(!confirmed||aiVideoRunning)return;
   clearAIVideoPolling();setAIVideoLoading(true);
@@ -234,12 +256,16 @@ async function generateAIVideo(newRequest=false){
   try{
     const ratio=aiVideoEl('aiVideoAspect').value;
     if(!['9:16','16:9'].includes(ratio))throw new Error('Kies staand 9:16 of liggend 16:9.');
-    const image=await normalizeAIVideoImage(ratio);
+    const sources=window.aiVideoReferences?.getSources()||[selectedImage];
+    const references=await Promise.all(sources.map(source=>normalizeAIVideoImage(ratio,source)));
+    const totalBytes=references.reduce((sum,image)=>sum+image.data.length*3/4-(image.data.endsWith('==')?2:image.data.endsWith('=')?1:0),0);
+    if(totalBytes>MAX_VEO_IMAGE_BYTES)throw new Error('De referentiefoto’s mogen samen maximaal 4 MiB zijn.');
+    const images=references.map(image=>`data:${image.mimeType};base64,${image.data}`);
     const prompt=aiVideoEl('aiVideoPrompt').value.trim();
     if(!prompt)throw new Error('Voer een beschrijving voor de AI-video in.');
     aiVideoRequestedRatio=ratio;aiVideoOperation='';aiVideoMayHaveStarted=true;
     saveAIVideoRecovery();submitting=true;
-    const response=await fetch('/.netlify/functions/start-veo-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:`data:${image.mimeType};base64,${image.data}`,prompt,aspectRatio:ratio})});
+    const response=await fetch('/.netlify/functions/start-veo-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images,prompt,aspectRatio:ratio})});
     const result=await readAIVideoJSON(response,'/.netlify/functions/start-veo-video');
     if(typeof result.operation!=='string'||!AI_VIDEO_OPERATION_PATTERN.test(result.operation))throw new Error(AI_VIDEO_SERVER_ERROR);
     aiVideoOperation=result.operation;saveAIVideoRecovery();

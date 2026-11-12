@@ -702,3 +702,14 @@ html,body{height:auto;overflow:visible;}
 #aiVideoOptions>#generateAIVideoBtn,#aiVideoOptions>#aiVideoPreviousButton{
   display:block;width:100%;min-height:48px;margin:12px 0 0;white-space:normal;
 }
+
+/* Video references are separate from brand photos and the advertisement library. */
+.video-references{margin:0 0 20px;min-width:0;}
+.video-reference-label{margin:0 0 6px;color:#0000ff;font-size:14px;font-weight:700;}
+.video-reference-help{margin:6px 0 10px;font-size:12px;line-height:1.5;color:#56545c;}
+.video-reference-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;}
+.video-reference-thumb{position:relative;min-width:0;padding-top:8px;}
+.video-reference-thumb img{display:block;width:100%;height:88px;object-fit:contain;border:1px solid #0000ff55;border-radius:8px;background:#fff;}
+.video-reference-remove{position:absolute;right:0;top:0;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #0000ff;border-radius:50%;background:#fff;color:#0000ff;font-size:24px;cursor:pointer;}
+.video-reference-remove:focus-visible{outline:2px solid #0000ff;outline-offset:2px;}
+.video-reference-error{color:var(--brand-error);font-size:13px;line-height:1.5;}

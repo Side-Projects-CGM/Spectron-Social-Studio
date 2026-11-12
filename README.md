@@ -223,7 +223,7 @@ download requests are still supported.
 The server uses the Gemini Interactions REST API (revision `2026-05-20`):
 
 1. `start-veo-video` makes one `POST /v1beta/interactions` with `background: true`,
-   the selected image and prompt, and a video response format (8 seconds, 720p,
+   the full reference image(s) and prompt, and a video response format (8 seconds, 720p,
    selected aspect ratio). It returns HTTP 202 with `interactions/<id>` without
    waiting for generation or retrying the paid request.
 2. The browser polls `veo-video-status` every 10 seconds, up to seven minutes.
@@ -244,8 +244,8 @@ The server uses the Gemini Interactions REST API (revision `2026-05-20`):
    The existing video/unknown MP4 file-type validation and request recovery remain.
 
 Omni 1.1 Flash supports 3–10 second outputs, so eight seconds does not require a
-model upgrade. The model ID stays `gemini-omni-1.1-flash`; image upload and
-image-to-video behaviour are unchanged. At the documented 720p output rate,
+model upgrade. The model ID stays `gemini-omni-1.1-flash`. Video photos are now
+product references, not forced starting frames. At the documented 720p output rate,
 eight seconds costs approximately $0.81 before input/other token charges.
 A future switch to `gemini-omni-1.2-flash` requires updating the model ID and
 running regression checks plus a separately approved paid visual test. Google
@@ -281,6 +281,42 @@ this is separate from Spectron's metadata-only usage store. See the current
 [background execution guide](https://ai.google.dev/gemini-api/docs/background-execution),
 [Interactions reference](https://ai.google.dev/api/interactions-api), and
 [retention documentation](https://ai.google.dev/gemini-api/docs/interactions-overview#data-storage).
+
+### Product reference photos (local feature branch)
+
+The video controls have a separate reference uploader with thumbnails and removal.
+The currently selected product photo is included initially. Additional references
+do not change the brand/ads photo or upload library. Selecting another product
+resets the references so unrelated products are not silently combined.
+
+- **Provisional app cap:** 1–3 images, JPEG/PNG/WebP, 4 MiB combined original bytes.
+  This keeps the base64 JSON request below the function request-size budget.
+- Browser checks decoded readability and sends complete files without cropping,
+  stretching, resizing or re-encoding. Output orientation only controls the video.
+- Server checks count, MIME, canonical base64, file signatures and combined size.
+  Signature validation is not a full image decoder or malware scanner.
+- The server accepts the existing single `image` field for older clients, as well
+  as the new `images` array. Both paths now use reference guidance.
+- The editable default prompt is unchanged. The server appends exactly:
+  `Gebruik de foto('s) alleen als referentie voor het product. Maak een nieuwe scène; begin de video niet met de geüploade foto.`
+- The API call omits `generation_config.video_config.task`. Google recommends
+  natural-language mode selection first; `reference_to_video` is a fallback,
+  not a requirement. Do not automatically retry a paid request to change modes.
+
+Current [Omni documentation](https://ai.google.dev/gemini-api/docs/omni)
+explicitly gives **six references for 1.2**, but does not clearly state a separate
+1.1 maximum. Three is our provisional application limit, **not a confirmed vendor
+maximum**. Keep this cap until separately validated; do not automatically raise
+it when 1.1 routes to 1.2 on **3 December 2026**.
+
+Keys remain server-side. References are kept in browser memory, not copied to
+session recovery storage, logs or usage records. Google's interaction storage
+still receives the submitted images. Model behaviour (including not reusing the
+photo as the opening frame) needs an explicitly approved real generation test;
+mocked payload tests cannot guarantee visual output.
+
+No preview or production deployment is part of the local test run. A later
+approved preview must use `--alias reference-test`, never `--prod`.
 
 ### Safe local regression tests
 

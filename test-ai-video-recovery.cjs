@@ -60,7 +60,7 @@ test('main Generate uses the newly selected photo; cancelling preserves the old 
   state.context.normalizeAIVideoImage = async () => ({mimeType:'image/png', data:Buffer.from(state.context.selectedImage).toString('base64')});
   state.respond = (url, options) => {
     if (options?.method === 'POST') {
-      submittedImages.push(JSON.parse(options.body).image);
+      submittedImages.push(JSON.parse(options.body).images[0]);
       return json({operation:`interactions/mock-photo-${submittedImages.length}`});
     }
     return json({state:'completed', outputAvailable:false});
