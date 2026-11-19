@@ -1,0 +1,18 @@
+# Separate demo site: set Base directory = demo in the Netlify UI.
+# All paths below resolve relative to demo/. Do not change the regular root config.
+[build]
+  command = "npm --prefix .. ci && node build.cjs"
+  publish = "../demo-dist"
+  functions = "functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "SAMEORIGIN"
+    Content-Security-Policy = "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"

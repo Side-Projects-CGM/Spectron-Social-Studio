@@ -56,7 +56,31 @@ One test is explicitly **TODO / known-failing**: the Netlify Blobs 11.1.3 local 
 
 ## Separate-site preview setup (not deployed)
 
-Use the same repository, branch `feat/demo-reset`, and **`netlify.demo.toml`**, never the regular site's root-publishing configuration.
+Use a **separate Netlify site** connected to the same repository and branch `feat/demo-reset`. In **Project configuration → Developer settings → Continuous deployment → Build settings**, set:
+
+| Netlify UI setting | Value |
+| --- | --- |
+| Base directory | `demo` |
+| Package directory | Leave blank |
+| Build command | `npm --prefix .. ci && node build.cjs` |
+| Publish directory | `../demo-dist` |
+| Functions directory | `functions` |
+
+Netlify discovers **`demo/netlify.toml`** from this base directory, before the root configuration. Paths in that file are relative to `demo/`: output stays in the repository's ignored `demo-dist/` and only `demo/functions` is deployed. The build reinstalls the existing root lockfile's dependencies into root `node_modules`, where shared backend modules resolve `@netlify/blobs`. It does not add or upgrade dependencies.
+
+The regular site keeps its root base directory and unchanged root `netlify.toml`. A regular-site Deploy Preview is **not** a demo preview. Merely naming a file `netlify.demo.toml` does not activate it; that older root file remains for explicit CLI configuration only.
+
+Test the exact UI build command locally from PowerShell (no deployment or AI calls):
+
+```powershell
+Push-Location demo
+npm --prefix .. ci
+if ($LASTEXITCODE -eq 0) { node build.cjs }
+Pop-Location
+node --test test-demo-config.cjs
+```
+
+The configuration test uses the already installed Netlify CLI's resolver offline and checks demo discovery without a `--config` override, root-config isolation, generated assets and backend dependency resolution. It does not access Netlify account settings or secrets. With the separate site configured, enable Deploy Previews there for PR reviews; do not deploy to the regular site.
 
 Required server-side settings, configured only after approval:
 - `DEMO_PRESENTER_PASSWORD`: at least 12 characters.

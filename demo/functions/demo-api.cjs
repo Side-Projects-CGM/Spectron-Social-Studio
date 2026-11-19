@@ -2,7 +2,7 @@ const {createDemoState, openDemoStore} = require('../../netlify/lib/demo-state.c
 const {createProviderCleanup} = require('../../netlify/lib/demo-provider-cleanup.cjs');
 const {createDemoGateway} = require('../../netlify/lib/demo-gateway.cjs');
 
-// This is the only function deployed by netlify.demo.toml. Legacy/test endpoints are not published.
+// demo/netlify.toml deploys only this function. Legacy/test endpoints are not published.
 exports.default = createDemoGateway({
   videoEnabled:() => process.env.DEMO_DISABLE_VIDEO !== 'true',
   stateFactory:event => createDemoState({
