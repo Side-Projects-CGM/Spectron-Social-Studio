@@ -1,0 +1,17 @@
+# Use only for the separate demo Netlify site. The regular site's netlify.toml is unchanged.
+[build]
+  command = "node demo/build.cjs"
+  publish = "demo-dist"
+  functions = "demo/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "SAMEORIGIN"
+    Content-Security-Policy = "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"

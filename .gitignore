@@ -9,6 +9,10 @@
 # Installed dependencies
 node_modules/
 
+# Local build outputs (never commit)
+demo-dist/
+assets/generated/
+
 test-canvas-preview.cjs
 
 .playwright-mcp/

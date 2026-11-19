@@ -1,0 +1,14 @@
+:root{--brand-light-blue:#cbd5e1;--brand-dark-blue:#263244;--brand-white:#fff;--brand-border:#d7dde5;--brand-border-strong:#aeb8c5;--brand-highlight:#f1f3f6;--brand-shadow:rgba(0,0,0,.08);--brand-shadow-soft:rgba(0,0,0,.04);--brand-shadow-hover:rgba(0,0,0,.12);--brand-overlay:rgba(0,0,0,.6);--brand-overlay-soft:rgba(0,0,0,.25);--artwork-accent:#263244;--artwork-signal:#cbd5e1}
+body.presenter{margin:0;display:flex;flex-direction:column;height:100dvh;overflow:auto;font:16px system-ui,sans-serif;color:#263244;background:#fff}
+.demo-toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid #d7dde5}
+.presenter button{padding:10px 16px;background:#263244;color:#fff;border:1px solid #263244;border-radius:6px;cursor:pointer;font:inherit}
+.presenter button:disabled{opacity:.6;cursor:wait}
+.presenter #demoStatus{margin:8px 20px;font-size:14px}
+.presenter #workspaceHost{flex:1;min-height:0}.presenter iframe{display:block;width:100%;height:100%;min-height:600px;border:0}
+.presenter #loginForm{max-width:440px;margin:40px auto;padding:20px}.presenter #loginForm label,.presenter #loginForm input{display:block;width:100%;box-sizing:border-box;margin:12px 0}.presenter input{padding:12px;font:inherit}
+.presenter dialog{max-width:520px;margin:auto;padding:24px;border:1px solid #aeb8c5;border-radius:12px;color:#263244}.presenter dialog::backdrop{background:#0008}.presenter dialog div{display:flex;gap:12px;justify-content:flex-end}.presenter [hidden]{display:none!important}
+#workspaceCanvas>#savedLibrary{position:relative;z-index:2;flex:none;width:100%;padding:16px;margin-top:16px;box-sizing:border-box;background:#fff;color:#263244}
+#workspacePlaceholder{pointer-events:none}
+#savedAdsPanel>p{color:#475569!important}
+.masthead>strong{font:600 22px system-ui,sans-serif}.workflow-panel input#brand{width:100%;box-sizing:border-box}.workflow-panel #demoBenefits{width:100%;box-sizing:border-box}
+@media(max-width:600px){.demo-toolbar{padding:10px}.presenter #demoStatus{margin:8px 10px}.presenter iframe{min-height:1000px}.presenter dialog{max-width:calc(100vw - 64px)}}
