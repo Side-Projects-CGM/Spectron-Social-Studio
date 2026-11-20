@@ -30,7 +30,7 @@ async function build(output = path.join(ROOT,'demo-dist')) {
   html = replace(html, /<\/head>/, '<link rel="stylesheet" href="neutral.css"></head>');
   html = html.replace('AI-video van 4 seconden','AI-video van 8 seconden');
   await fs.writeFile(path.join(output,'studio.html'),html);
-  for (const name of ['studio-design.css','social-platforms-blue.svg','instagram-platform.svg','animated-video.js']) await fs.copyFile(path.join(ROOT,name),path.join(output,name));
+  for (const name of ['studio-design.css','studio-progress.css','studio-progress.js','ai-video-references.js','social-platforms-blue.svg','instagram-platform.svg','animated-video.js']) await fs.copyFile(path.join(ROOT,name),path.join(output,name));
   for (const name of ['ai-video.js','ai-background.js','studio-library.js']) {
     let source=await load(name);
     if(name==='ai-video.js') {

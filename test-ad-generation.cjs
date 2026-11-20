@@ -1,15 +1,15 @@
 ﻿const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 const page=fs.readFileSync('spectron-social-studio.html','utf8');
 const source=page.slice(page.indexOf('let adGenerationInProgress ='),page.indexOf('function renderResults('));
-function session(){
+function session(progress){
  const elements=new Map();
  const el=id=>{if(!elements.has(id))elements.set(id,{value:'',innerHTML:'',textContent:'',style:{},attributes:{},setAttribute(k,v){this.attributes[k]=v;}});return elements.get(id);};
  for(const [id,value] of Object.entries({brand:'Bluey',platform:'post',tone:'warm',promo:'',variantCount:'4'}))el(id).value=value;
  el('resultsArea').innerHTML='OLD RESULTS';
  let settle,requests=0,renders=0;
- const context=vm.createContext({document:{getElementById:id=>id==='adGenerationLoading'?null:el(id)},getFormatSpec:()=>({label:'Square'}),getSelectedUSPs:()=>[],PLATFORM_LIMITS:{post:{headline:30,body:100}},escapeHtml:String,
+ const context=vm.createContext({...(progress?{window:{studioProgress:progress}}:{}),document:{getElementById:id=>id==='adGenerationLoading'?null:el(id)},getFormatSpec:()=>({label:'Square'}),getSelectedUSPs:()=>[],PLATFORM_LIMITS:{post:{headline:30,body:100}},escapeHtml:String,
  fetch:()=>{requests++;return new Promise(resolve=>{settle=resolve;});},
- renderResults(variants){assert.equal(el('generateBtn').disabled,true,'Loading lasts through rendering');assert.match(el('resultsArea').innerHTML,/role="progressbar"/);renders++;if(context.renderFails)throw new Error('Render failed');el('resultsArea').innerHTML='NEW RESULTS';},
+ renderResults(variants){assert.equal(el('generateBtn').disabled,true,'Loading lasts through rendering');if(progress)assert.equal(progress.ready,true,'Result waits for the loader deadline');else assert.match(el('resultsArea').innerHTML,/role="progressbar"/);renders++;if(context.renderFails)throw new Error('Render failed');el('resultsArea').innerHTML='NEW RESULTS';},
  generateOffline(){if(context.fallbackFails)throw new Error('Fallback failed');return [{headline:'Offline'}];}
  });
  vm.runInContext(source,context);
@@ -31,12 +31,27 @@ function restored(s){assert.equal(s.el('generateBtn').disabled,false);assert.mat
   s=session();s.context.fallbackFails=mode!=='fallback';s.context.renderFails=mode==='render';pending=s.run();
   s.respond(mode==='render'?success:mode==='empty'?{ok:true,json:async()=>({candidates:[{content:{parts:[{text:'{"variants":[]}'}]}}]})}:{ok:false,status:500});
   await pending;restored(s);
-  if(mode==='fallback')assert.equal(s.el('resultsArea').innerHTML,'NEW RESULTS');
-  else {assert.match(s.el('resultsArea').innerHTML,/Opnieuw proberen/);assert.match(s.el('resultsArea').innerHTML,/onclick="generateAds\(\)"/);}
+  if(mode==='fallback'){
+   assert.equal(s.el('resultsArea').innerHTML,'NEW RESULTS');
+   assert.match(s.el('outputMeta').textContent,/offline modus/);
+   assert.equal(s.renders(),1);
+  }else{
+   assert.match(s.el('resultsArea').innerHTML,/Opnieuw proberen/);
+   assert.match(s.el('resultsArea').innerHTML,/role="alert"/);
+   assert.match(s.el('resultsArea').innerHTML,/onclick="generateAds\(\)"/);
+   assert.equal(s.renders(),mode==='render'?1:0);
+  }
  }
+ // A failed AI request still waits for the shared two-second gate before showing fallback.
+ let release,stops=0;
+ const progress={ready:false,start(){},stop(){stops++;},waitForAd(){return new Promise(resolve=>{release=()=>{this.ready=true;resolve(true);};});}};
+ s=session(progress);pending=s.run();s.respond({ok:false,status:500});
+ await new Promise(setImmediate);
+ assert.equal(s.renders(),0);assert.equal(s.el('generateBtn').disabled,true);assert.equal(typeof release,'function');
+ release();await pending;restored(s);assert.equal(s.renders(),1);assert.match(s.el('outputMeta').textContent,/offline modus/);assert.equal(stops,1);assert.equal(s.requests(),1);
  s=session();s.el('brand').value='';await s.run();assert.equal(s.requests(),0);assert.doesNotMatch(s.el('resultsArea').innerHTML,/progressbar/);
- s=session();s.el('outputType').value='video';let videoCalls=0;s.context.generateAnimatedAd=async()=>{videoCalls++;};await s.run();assert.equal(videoCalls,1);assert.equal(s.requests(),0,'Video mode must bypass the AI text endpoint');
- console.log('PASS: immediate accessible indeterminate progress, old-result replacement, disabled button, duplicate prevention, rendering completion, retry, fallback and failure cleanup');
+ s=session();s.el('outputType').value='ai-video';let videoCalls=0;s.context.generateAIVideo=async()=>{videoCalls++;};await s.run();assert.equal(videoCalls,1);assert.equal(s.requests(),0,'Video mode must bypass the AI text endpoint');
+ console.log('PASS: immediate accessible indeterminate progress, old-result replacement, disabled button, duplicate prevention, rendering completion, retry, original offline fallback behind the loader gate, and double-failure cleanup');
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
 

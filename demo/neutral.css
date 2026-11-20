@@ -11,4 +11,9 @@ body.presenter{margin:0;display:flex;flex-direction:column;height:100dvh;overflo
 #workspacePlaceholder{pointer-events:none}
 #savedAdsPanel>p{color:#475569!important}
 .masthead>strong{font:600 22px system-ui,sans-serif}.workflow-panel input#brand{width:100%;box-sizing:border-box}.workflow-panel #demoBenefits{width:100%;box-sizing:border-box}
+/* Desktop: keep one workspace scrollbar below the fixed presenter toolbar. */
+@media(min-width:901px){
+  body.presenter{overflow:hidden}
+  .presenter iframe{min-height:0}
+}
 @media(max-width:600px){.demo-toolbar{padding:10px}.presenter #demoStatus{margin:8px 10px}.presenter iframe{min-height:1000px}.presenter dialog{max-width:calc(100vw - 64px)}}
