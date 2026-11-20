@@ -13,7 +13,7 @@ function browser(storage = new Map()) {
     aiVideoAspect:{value:'9:16'}, aiVideoPrompt:{value:'private prompt'}, aiVideoNoImage:{},
     generateAIVideoBtn:{}, outputMeta:{}, resultsArea:{}, aiVideoAgain:{}, aiVideoPreviousButton:{hidden:true},
     workspaceOutput:{hidden:true}, workspacePlaceholder:{hidden:false}, workspaceImagePreview:{hidden:false},
-    aiVideoPreview:{dataset:{}, addEventListener(){}, load(){this.loaded = true;}},
+    aiVideoPreview:{readyState:2, dataset:{}, addEventListener(){}, load(){this.loaded = true;}},
     aiVideoPreviewError:{hidden:true}, aiVideoConfirmModal:{hidden:true},
     aiVideoConfirmButton:{focus(){}}, aiVideoCancelButton:{}, aiVideoRetryWarning:{}
   };

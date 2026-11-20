@@ -1427,6 +1427,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 
 </style>
 <link rel="stylesheet" href="studio-design.css?v=product-references-1">
+<link rel="stylesheet" href="studio-progress.css">
 </head>
 <body>
 <div class="wrap">
@@ -1641,6 +1642,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 </div>
 
 <script src="embedded-assets.js"></script>
+<script src="studio-progress.js"></script>
 <script>
 const embeddedAsset = path => (window.SPECTRON_EMBEDDED_ASSETS || {})[path] || path;
 const brandSet = slug => [1,2,3].map(i => embeddedAsset(`brand-images/${slug}-${i}.jpg`));
@@ -2547,7 +2549,7 @@ function escapeHtml(str){
 }
 
 let adGenerationInProgress = false;
-function setAdGenerationState(generating){
+function setAdGenerationState(generating, mode='ad'){
   adGenerationInProgress = generating;
   const btn = document.getElementById('generateBtn');
   const resultsArea = document.getElementById('resultsArea');
@@ -2567,7 +2569,12 @@ function setAdGenerationState(generating){
       <p id="adGenerationStatus" role="status" aria-live="polite">Je advertenties worden gegenereerd…</p>
       <div class="bar" role="progressbar" aria-labelledby="adGenerationStatus"></div>
     </div>`;
+    if(typeof window!=='undefined' && window.studioProgress){
+      resultsArea.innerHTML='';
+      window.studioProgress.start(mode);
+    }
   }else{
+    if(typeof window!=='undefined') window.studioProgress?.stop();
     document.getElementById('adGenerationLoading')?.remove();
   }
 }
@@ -2645,20 +2652,22 @@ Als hashtags niet van toepassing zijn voor dit platform, geef een lege array ter
     }
 
     if(!Array.isArray(parsed.variants) || !parsed.variants.length) throw new Error('Geen varianten ontvangen.');
+    if(typeof window!=='undefined' && window.studioProgress && !await window.studioProgress.waitForAd()) return;
     currentBrand = brand;
     renderResults(parsed.variants, platform, product, false);
     outputMeta.textContent = `${(parsed.variants||[]).length} variant(en) · ${platform}`;
 
   }catch(err){
-    // Live AI-generatie niet bereikbaar (bv. tool lokaal geopend zonder Netlify) — val terug op ingebouwde generator
+    // Keep the existing offline fallback, behind the same two-second display gate.
     try{
       const offlineVariants = generateOffline(brand, product, platform, tone, usps, promo, count);
       if(!Array.isArray(offlineVariants) || !offlineVariants.length) throw new Error('Geen varianten ontvangen.');
+      if(typeof window!=='undefined' && window.studioProgress && !await window.studioProgress.waitForAd()) return;
       currentBrand = brand;
       renderResults(offlineVariants, platform, product, true);
       outputMeta.textContent = `${offlineVariants.length} variant(en) · ${platform} · offline modus`;
     }catch(fallbackErr){
-      resultsArea.innerHTML = `<div class="error-box"><b>Er ging iets mis:</b> ${escapeHtml(err.message)}. Probeer het opnieuw. <button type="button" class="card-dl-btn" onclick="generateAds()">Opnieuw proberen</button></div>`;
+      resultsArea.innerHTML = `<div class="error-box" role="alert"><b>Er ging iets mis:</b> ${escapeHtml(err.message)}. Probeer het opnieuw. <button type="button" class="card-dl-btn" onclick="generateAds()">Opnieuw proberen</button></div>`;
       outputMeta.textContent = "mislukt";
     }
   }finally{
@@ -2883,7 +2892,7 @@ showWorkflowChooser();
 </script>
 <script src="animated-video.js?v=dutch-copy-1"></script>
 <script src="ai-video-references.js"></script>
-<script src="ai-video.js?v=product-references-1"></script>
+<script src="ai-video.js?v=progress-loader-1"></script>
 <script src="ai-background.js?v=dutch-copy-4"></script>
 <script src="studio-library.js?v=dutch-word-wrap-1"></script>
 

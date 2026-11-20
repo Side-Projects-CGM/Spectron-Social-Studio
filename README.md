@@ -56,7 +56,9 @@ This runs the page and its Netlify function using your local `.env`. The `--offl
 
 Leave PowerShell running and open **http://localhost:8888** in your browser. Use this address instead of double-clicking the HTML file.
 
-Choose your options and click **Genereer advertentie**. If the result says **offline modus**, the built-in fallback was used instead of Gemini. Check your API key and internet connection.
+Choose your options and click **Genereer advertentie**. A shared blue circular loader counts from 0% to 100% over two seconds. Fast results wait for the animation; slow results keep **Even geduld…** visible at 100% until ready. If AI generation fails, the existing local template fallback is shown after the same loader, labelled **offline modus**. An error appears only if the fallback also fails. Check your API key and internet connection if offline mode appears.
+
+Video uses the same loader after paid confirmation, with explicitly estimated progress capped below 95%. It reaches 100% only after the MP4 has downloaded and the browser has decoded a frame. See [progress loader notes](docs/PROGRESS-LOADER.md) for styling variables and mocked tests.
 
 Press **Ctrl+C** to stop. Restart the command after changing `.env`.
 

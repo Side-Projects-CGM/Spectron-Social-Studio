@@ -114,7 +114,7 @@ function setAIVideoLoading(loading){
   window.aiVideoReferences?.setBusy(loading);
   const btn=aiVideoEl('generateAIVideoBtn');
   if(btn){btn.disabled=loading;btn.textContent=loading?'Video wordt gegenereerd...':'Genereer mijn video';}
-  setAdGenerationState(loading);
+  setAdGenerationState(loading,'video');
   if(loading){
     aiVideoEl('outputMeta').textContent='AI-video — bezig';
     const results=aiVideoEl('resultsArea');
@@ -128,6 +128,7 @@ function showAIVideoError(message){
 }
 /** @param {string} message @param {string} title @param {boolean} canResume */
 function showAIVideoRecovery(message,title='AI-video — statuscontrole onderbroken',canResume=true){
+  window.studioProgress?.stop();
   // Explicit recovery can run before generation has revealed the output.
   const output=aiVideoEl('workspaceOutput');if(output)output.hidden=false;
   const placeholder=aiVideoEl('workspacePlaceholder');if(placeholder)placeholder.hidden=true;
@@ -167,12 +168,24 @@ function showAIVideoPreviewError(message){
   if(error){error.hidden=false;error.textContent=message+' Laad het voorbeeld opnieuw of kies MP4 downloaden om het bestand af te spelen.';}
   aiVideoEl('outputMeta').textContent='AI-video — voltooid, voorbeeld niet beschikbaar';
 }
+function waitForAIVideoReady(video){
+  if(video.readyState>=2) return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const cleanup=()=>{clearTimeout(timer);video.removeEventListener('loadeddata',ready);video.removeEventListener('error',failed);};
+    const ready=()=>{cleanup();resolve();};
+    const failed=()=>{cleanup();reject(new Error('Het videovoorbeeld kon niet worden afgespeeld.'));};
+    const timer=setTimeout(()=>{cleanup();reject(new Error('Het laden van het videovoorbeeld duurde te lang.'));},30000);
+    video.addEventListener('loadeddata',ready,{once:true});
+    video.addEventListener('error',failed,{once:true});
+  });
+}
 /** @param {string} operation */
 async function showAIVideoPreview(operation){
   clearAIVideoUrl();
   aiVideoUrl='/.netlify/functions/download-veo-video?operation='+encodeURIComponent(operation);
   const previewMode=aiVideoRequestedRatio==='9:16'?'portrait':'landscape';
   const results=aiVideoEl('resultsArea');
+  results.hidden=true;
   results.innerHTML=`<div class="video-result ai-video-result">
     <div id="aiVideoFrame" class="ai-video-frame ai-video-frame-${previewMode}">
       <video id="aiVideoPreview" class="video-preview" controls muted loop playsinline preload="metadata" aria-label="Voorbeeld van AI-video"></video>
@@ -198,8 +211,15 @@ async function showAIVideoPreview(operation){
     const videoBlob=await readAIVideoDownload(videoResponse);
     aiVideoPreviewUrl=URL.createObjectURL(videoBlob);
     video.src=aiVideoPreviewUrl;video.load();
-  }catch(previewError){showAIVideoPreviewError(previewError.message||AI_VIDEO_SERVER_ERROR);}
-  setAIVideoLoading(false);sizeAIVideoPreview();
+    await waitForAIVideoReady(video);
+    if(window.studioProgress && !await window.studioProgress.complete()) return;
+  }catch(previewError){
+    showAIVideoPreviewError(previewError.message||AI_VIDEO_SERVER_ERROR);
+    clearAIVideoUrl();
+  }finally{
+    results.hidden=false;
+    setAIVideoLoading(false);sizeAIVideoPreview();
+  }
 }
 /** @param {string} operation */
 async function pollAIVideo(operation){

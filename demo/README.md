@@ -42,15 +42,21 @@ This reads the existing ignored `.env` on the server; it must contain `GEMINI_AP
 
 Each text/image click can incur Google charges. This command **still disables video server-side**. Daily limits remain 50 text and 30 image attempts within this local process, with no refund after a reserved attempt; restarting the local runner resets its counters. Do not use this runner as a public service.
 
+## Desktop scrolling
+
+Above 900px, only the embedded Studio document scrolls below the presenter toolbar. The iframe fits the available height instead of enforcing its old 600px minimum, so no second outer scrollbar is needed. The left controls and results share that single document scrollbar; dialogs keep their existing viewport. Mobile sizing, presenter logic and regular Studio are unchanged.
+
+Regression check: `node --test test-demo-scroll-browser.cjs`. It checks 1280×650, 1280×900, 1440×900 and 390×844, including mouse-wheel scrolling over the left controls, reachable footer/results, result expansion/collapse, desktop/mobile switching and reset. Screenshots/report are under ignored `artifacts/demo-scroll/`.
+
 ## Automated checks (all AI mocked)
 
 ```powershell
 node demo/build.cjs
-node --test test-demo-*.cjs
+node --test --test-concurrency=1 test-demo-*.cjs
 npm run test:usage
 ```
 
-Browser tests reuse the installed Playwright package in the Food for Skin folder on GU's machine. On another machine, point the existing `PLAYWRIGHT_MODULE` setting at an installed Playwright package; do not install dependencies without approval.
+Run the demo suite sequentially because existing tests share `demo-dist` build output. Browser tests reuse the installed Playwright package in the Food for Skin folder on GU's machine. On another machine, point the existing `PLAYWRIGHT_MODULE` setting at an installed Playwright package; do not install dependencies without approval.
 
 One test is explicitly **TODO / known-failing**: the Netlify Blobs 11.1.3 local emulator does not return ETags on GET and does not lock its conditional PUT check/write sequence. See `BLOBS-DIAGNOSIS.md`. A zero exit code with a TODO is not full acceptance or production sign-off.
 
