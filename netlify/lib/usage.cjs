@@ -72,6 +72,8 @@ function createTracker({storeFactory = openStore, fetcher = (...args) => fetch(.
     return false;
   }
   async function trackedFetch(event, details, url, options) {
+    // Demo allowances are recorded separately, without customer-linked usage/operation logs.
+    if (event?.[require('./demo-context.cjs').DEMO_REQUEST]) return fetcher(url, options);
     const base = {version: 1, id: randomUUID(), timestamp: new Date().toISOString(), ...details};
     const prefix = `${namespace()}/events/${base.timestamp.slice(0,10)}/${base.id}`;
     await save(event, `${prefix}/request`, {...base, phase: 'request', outcome: 'unknown'});

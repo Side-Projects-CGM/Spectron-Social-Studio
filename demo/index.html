@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Social Studio demo</title><link rel="stylesheet" href="neutral.css"></head>
+<body class="presenter">
+<header class="demo-toolbar"><strong>Social Studio demo</strong><button id="resetDemo" hidden>Reset demo</button></header>
+<p id="demoStatus" role="status" aria-live="polite"></p>
+<form id="loginForm" hidden><h1>Presenter aanmelden</h1><label for="password">Wachtwoord</label><input id="password" type="password" autocomplete="current-password" required><button>Aanmelden</button><p>Gebruik alleen beelden waarvoor de klant toestemming heeft gegeven. AI-generatie brengt kosten met zich mee.</p></form>
+<main id="workspaceHost"></main>
+<dialog id="resetDialog" aria-labelledby="resetTitle"><h2 id="resetTitle">Demo resetten?</h2><p>Alle uploads, opgeslagen ontwerpen, gegenereerde content en tijdelijke bestanden van deze demosessie worden verwijderd. Andere demosessies blijven behouden.</p><p>Gedownloade bestanden en gekopieerde inhoud worden niet verwijderd. Voor gegevens bij Google gelden aanvullende bewaartermijnen. Deze actie kan niet ongedaan worden gemaakt.</p><div><button id="cancelReset">Annuleren</button><button id="confirmReset">Reset demo</button></div></dialog>
+<script src="presenter.js"></script></body></html>
