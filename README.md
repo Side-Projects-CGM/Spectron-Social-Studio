@@ -286,10 +286,31 @@ this is separate from Spectron's metadata-only usage store. See the current
 
 ### Product reference photos (local feature branch)
 
-The video controls have a separate reference uploader with thumbnails and removal.
-The currently selected product photo is included initially. Additional references
-do not change the brand/ads photo or upload library. Selecting another product
-resets the references so unrelated products are not silently combined.
+Selecting Video shows three fixed image boxes in one row. Box 1 follows the
+currently selected product photo; boxes 2 and 3 have blue **+ Upload** buttons.
+Click an uploaded thumbnail to replace it, or its × button to empty that slot.
+Removing a photo does not shift the other slots. The first photo is changed through
+the existing main image/gallery controls, not removed from its video slot.
+
+All available reference photos also appear enlarged on the canvas immediately:
+side by side on desktop, stacked on mobile for readability. Full image proportions
+are preserved without cropping/stretching. Uploading/replacing a reference reveals
+this canvas instead of an older video result. Extra references do not change the
+brand/ads photo, upload library or cached ad results. Returning to Video retains
+them; selecting a different main product resets them so unrelated products are
+not silently combined. Reference controls remain locked during video generation.
+
+`ai-video-references.js` owns the fixed slots and canvas, while
+`spectron-social-studio.html` synchronizes them when the main image/workflow changes.
+`studio-design.css` controls the boxes and large-preview layout. The backend,
+model, prompt, paid confirmation and loader are unchanged by this UI ticket.
+
+Run `node --test test-video-image-boxes-browser.cjs` for mocked regular/demo checks
+at 1280px and 390px, including upload/replace/remove, file/combined-size validation,
+ad isolation, cancellation, outgoing original bytes, stale-upload protection and
+demo reset. Screenshots/report: ignored `artifacts/video-image-boxes/`.
+The **10 MiB request is a separate ticket**; this change keeps the existing 4 MiB cap.
+See [the walkthrough and review notes](docs/VIDEO-IMAGE-BOXES.md).
 
 - **Provisional app cap:** 1–3 images, JPEG/PNG/WebP, 4 MiB combined original bytes.
   This keeps the base64 JSON request below the function request-size budget.

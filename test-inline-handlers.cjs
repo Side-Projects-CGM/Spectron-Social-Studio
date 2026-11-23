@@ -5,7 +5,7 @@ const page = fs.readFileSync('spectron-social-studio.html', 'utf8');
 const elements = new Map();
 function element(id) {
   if (!elements.has(id)) elements.set(id, {
-    value:'', style:{}, dataset:{}, options:[{text:'Instagram'}], selectedIndex:0, children:[], hidden:true,
+    value:'', style:{setProperty(name,value){this[name]=value;}}, dataset:{}, options:[{text:'Instagram'}], selectedIndex:0, children:[], hidden:true,
     classList:{add(){}, remove(){}, toggle(){}},
     addEventListener(){}, setAttribute(){}, removeAttribute(){}, pause(){}, load(){}, querySelectorAll(){return [];},
     before(){}, replaceChildren(){}, append(){}, closest(){return null;}
