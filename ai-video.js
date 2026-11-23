@@ -3,6 +3,7 @@ const DEFAULT_AI_VIDEO_PROMPT="Maak een vrolijke, professionele reclamevideo van
 const MAX_VEO_IMAGE_BYTES=10*1024*1024;
 const AI_VIDEO_INLINE_BYTES=4*1024*1024;
 let aiVideoRunning=false,aiVideoPollTimer=0,aiVideoPollStarted=0,aiVideoUrl='',aiVideoPreviewUrl='';
+let aiVideoRestoring=false,aiVideoCachedPreview=null;
 const AI_VIDEO_SERVER_ERROR='De videodienst gaf een onverwacht serverantwoord. Probeer het opnieuw of neem contact op met de ondersteuning.';
 const AI_VIDEO_RETRY_WARNING='De vorige videoaanvraag is mogelijk al gestart. Opnieuw starten kan een extra betaalde video opleveren.';
 let aiVideoMayHaveStarted=false;
@@ -43,7 +44,7 @@ function updateAIVideoRecoveryButton(){
 // Restore silently; only an explicit click may reveal recovery or read status.
 async function openPreviousAIVideo(){
   if(aiVideoRunning||aiVideoConfirmPending)return;
-  if(aiVideoOperation){await resumeAIVideo();return;}
+  if(aiVideoOperation){if(revealCachedAIVideo())return;await resumeAIVideo();return;}
   if(aiVideoMayHaveStarted)showAIVideoRecovery('Een eerdere aanvraag is mogelijk gestart, maar er is geen aanvraagnummer ontvangen. Neem contact op met de ondersteuning voordat je een nieuwe betaalde aanvraag start.');
 }
 // Keep the submitted orientation independent of later selector changes.
@@ -94,7 +95,22 @@ function aiVideoEl(id){return document.getElementById(id);}
 function aiVideoFormatRatio(){return aiVideoEl('aiVideoAspect')?.value||'9:16';}
 function updateVideoMode(){const ai=aiVideoEl('outputType')?.value==='ai-video';const panel=aiVideoEl('aiVideoOptions');const old=aiVideoEl('videoOptions');if(old)old.hidden=true;if(panel)panel.hidden=!ai;const main=aiVideoEl('generateBtn');if(main)main.hidden=ai;const btn=aiVideoEl('generateAIVideoBtn');if(btn){btn.disabled=!ai||aiVideoRunning;btn.setAttribute('aria-disabled',String(btn.disabled));}if(ai){syncAIVideoImage();const ratio=aiVideoFormatRatio();if(aiVideoEl('aiVideoAspect'))aiVideoEl('aiVideoAspect').value=ratio;if(typeof syncStudioVideoFormatButtons==='function')syncStudioVideoFormatButtons(ratio);if(aiVideoEl('aiVideoSquareHint'))aiVideoEl('aiVideoSquareHint').hidden=!(getFormatSpec()?.width===getFormatSpec()?.height);} }
 window.syncAIVideoImage=function syncAIVideoImage(){window.aiVideoReferences?.syncSelectedImage(selectedImage);const preview=aiVideoEl('aiVideoSourcePreview');const empty=aiVideoEl('aiVideoNoImage');if(preview){preview.src=selectedImage||'';preview.hidden=!selectedImage;}if(empty)empty.hidden=true;const btn=aiVideoEl('generateAIVideoBtn');if(btn)btn.disabled=aiVideoRunning;}
-function clearAIVideoUrl(){if(aiVideoPreviewUrl){URL.revokeObjectURL(aiVideoPreviewUrl);aiVideoPreviewUrl='';}aiVideoUrl='';}
+function revealCachedAIVideo(){
+  const cached=aiVideoCachedPreview;
+  if(!cached||cached.operation!==aiVideoOperation||!cached.result||!aiVideoPreviewUrl||cached.video.src!==aiVideoPreviewUrl||cached.video.readyState<2||cached.video.error)return false;
+  const results=aiVideoEl('resultsArea');
+  if(!results.contains(cached.result))results.replaceChildren(cached.result);
+  results.hidden=false;
+  aiVideoEl('workspaceOutput').hidden=false;
+  aiVideoEl('workspacePlaceholder').hidden=true;
+  if(typeof hideWorkspaceImagePreview==='function')hideWorkspaceImagePreview();
+  else if(aiVideoEl('workspaceImagePreview'))aiVideoEl('workspaceImagePreview').hidden=true;
+  aiVideoEl('outputMeta').textContent='AI-video — voltooid';
+  sizeAIVideoPreview();
+  cached.video.scrollIntoView?.({block:'center',behavior:'instant'});
+  return true;
+}
+function clearAIVideoUrl(){aiVideoCachedPreview=null;if(aiVideoPreviewUrl){URL.revokeObjectURL(aiVideoPreviewUrl);aiVideoPreviewUrl='';}aiVideoUrl='';}
 function blobToDataUrl(blob){return new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('De geselecteerde afbeelding kon niet worden gelezen.'));reader.readAsDataURL(blob);});}
 async function normalizeAIVideoImage(targetRatio, source=selectedImage){
   // Output orientation belongs to response_format. References retain all pixels.
@@ -150,17 +166,19 @@ async function uploadAIVideoReferences(references){
     throw error;
   }
 }
-/** @param {boolean} loading */
-function setAIVideoLoading(loading){
+/** @param {boolean} loading @param {'video'|'restore'} [mode] */
+function setAIVideoLoading(loading,mode='video'){
   aiVideoRunning=loading;
+  aiVideoRestoring=loading&&mode==='restore';
   window.aiVideoReferences?.setBusy(loading);
   const btn=aiVideoEl('generateAIVideoBtn');
-  if(btn){btn.disabled=loading;btn.textContent=loading?'Video wordt gegenereerd...':'Genereer mijn video';}
-  setAdGenerationState(loading,'video');
+  if(btn){btn.disabled=loading;btn.textContent=loading?(aiVideoRestoring?'Vorige video laden…':'Video wordt gegenereerd...'):'Genereer mijn video';}
+  setAdGenerationState(loading,mode);
   if(loading){
-    aiVideoEl('outputMeta').textContent='AI-video — bezig';
+    aiVideoEl('outputMeta').textContent=aiVideoRestoring?'AI-video — vorige video laden':'AI-video — bezig';
     const results=aiVideoEl('resultsArea');
-    if(results)results.innerHTML='<div role="status">AI-video wordt verwerkt. Wachten op de bestaande aanvraag of het antwoord op de inzending...</div>';
+    if(results)results.innerHTML=aiVideoRestoring?'<div role="status">Vorige video laden… Er wordt geen nieuwe video gestart.</div>':'<div role="status">AI-video wordt verwerkt. Wachten op de bestaande aanvraag of het antwoord op de inzending...</div>';
+    if(aiVideoRestoring&&results){results.hidden=false;results.firstElementChild?.scrollIntoView?.({block:'center',behavior:'instant'});}
   }
 }
 function clearAIVideoPolling(){if(aiVideoPollTimer){clearTimeout(aiVideoPollTimer);aiVideoPollTimer=0;}}
@@ -185,7 +203,7 @@ async function resumeAIVideo(){
   if(aiVideoRunning||aiVideoConfirmPending||!aiVideoOperation)return;
   clearAIVideoPolling();
   aiVideoPollStarted=Date.now();
-  setAIVideoLoading(true);
+  setAIVideoLoading(true,'restore');
   await pollAIVideo(aiVideoOperation);
 }
 // Size only the rendered preview; the submitted ratio and download stay unchanged.
@@ -206,6 +224,7 @@ window.addEventListener('resize',sizeAIVideoPreview);
 window.visualViewport?.addEventListener('resize',sizeAIVideoPreview);
 /** @param {string} message */
 function showAIVideoPreviewError(message){
+  aiVideoCachedPreview=null;
   const error=aiVideoEl('aiVideoPreviewError');
   if(error){error.hidden=false;error.textContent=message+' Laad het voorbeeld opnieuw of kies MP4 downloaden om het bestand af te spelen.';}
   aiVideoEl('outputMeta').textContent='AI-video — voltooid, voorbeeld niet beschikbaar';
@@ -223,12 +242,13 @@ function waitForAIVideoReady(video){
 }
 /** @param {string} operation */
 async function showAIVideoPreview(operation){
+  const restoring=aiVideoRestoring;
   clearAIVideoUrl();
   aiVideoUrl='/.netlify/functions/download-veo-video?operation='+encodeURIComponent(operation);
   const previewMode=aiVideoRequestedRatio==='9:16'?'portrait':'landscape';
   const results=aiVideoEl('resultsArea');
-  results.hidden=true;
-  results.innerHTML=`<div class="video-result ai-video-result">
+  results.hidden=!restoring;
+  results.innerHTML=(restoring?'<p id="aiVideoRestoreStatus" role="status" aria-live="polite">Vorige video laden… Er wordt geen nieuwe video gestart.</p>':'')+`<div class="video-result ai-video-result"${restoring?' hidden':''}>
     <div id="aiVideoFrame" class="ai-video-frame ai-video-frame-${previewMode}">
       <video id="aiVideoPreview" class="video-preview" controls muted loop playsinline preload="metadata" aria-label="Voorbeeld van AI-video"></video>
     </div>
@@ -239,26 +259,33 @@ async function showAIVideoPreview(operation){
       <button type="button" class="card-dl-btn" onclick="resumeAIVideo()">Voorbeeld opnieuw laden</button>
     </div></div>`;
   const video=aiVideoEl('aiVideoPreview');
+  const resultElement=video.closest?.('.ai-video-result')||results.firstElementChild;
+  if(restoring)aiVideoEl('aiVideoRestoreStatus')?.scrollIntoView?.({block:'center',behavior:'instant'});
   video.controls=true;video.muted=true;video.loop=true;video.playsInline=true;video.preload='metadata';
   video.dataset.previewRatio=previewMode;
   video.addEventListener('loadedmetadata',()=>{
     sizeAIVideoPreview();
     console.info('[ai-video] preview dimensions',video.videoWidth,video.videoHeight,'ratio',video.videoWidth&&video.videoHeight?(video.videoWidth/video.videoHeight).toFixed(3):'unknown');
   });
-  video.onerror=()=>showAIVideoPreviewError('Het videovoorbeeld kon niet in deze browser worden geladen.');
+  video.onerror=()=>{if(aiVideoEl('aiVideoPreview')===video)showAIVideoPreviewError('Het videovoorbeeld kon niet in deze browser worden geladen.');};
   aiVideoEl('aiVideoAgain').onclick=()=>generateAIVideo(true);
-  aiVideoEl('outputMeta').textContent='AI-video — voltooid';
+  aiVideoEl('outputMeta').textContent=restoring?'AI-video — vorige video laden':'AI-video — voltooid';
   try{
     const videoResponse=await fetch(aiVideoUrl);
     const videoBlob=await readAIVideoDownload(videoResponse);
     aiVideoPreviewUrl=URL.createObjectURL(videoBlob);
     video.src=aiVideoPreviewUrl;video.load();
     await waitForAIVideoReady(video);
-    if(window.studioProgress && !await window.studioProgress.complete()) return;
+    if(!restoring&&window.studioProgress && !await window.studioProgress.complete()) return;
+    if(video.error||video.readyState<2)throw new Error('Het videovoorbeeld kon niet worden afgespeeld.');
+    aiVideoCachedPreview={operation,video,result:resultElement};
+    aiVideoEl('outputMeta').textContent='AI-video — voltooid';
   }catch(previewError){
     showAIVideoPreviewError(previewError.message||AI_VIDEO_SERVER_ERROR);
     clearAIVideoUrl();
   }finally{
+    aiVideoEl('aiVideoRestoreStatus')?.remove?.();
+    if(resultElement)resultElement.hidden=false;
     results.hidden=false;
     setAIVideoLoading(false);sizeAIVideoPreview();
   }
@@ -276,7 +303,8 @@ async function pollAIVideo(operation){
     const result=await readAIVideoJSON(response,'/.netlify/functions/veo-video-status');
     if(!['pending','failed','completed','unknown'].includes(result.state))throw new Error(AI_VIDEO_SERVER_ERROR);
     if(result.state==='pending'){
-      aiVideoEl('outputMeta').textContent='AI-video — in behandeling';
+      aiVideoEl('outputMeta').textContent=aiVideoRestoring?'AI-video — vorige video wordt nog verwerkt':'AI-video — in behandeling';
+      if(aiVideoRestoring)aiVideoEl('resultsArea').innerHTML='<div role="status">De vorige video wordt nog verwerkt. We controleren dezelfde aanvraag; er wordt geen nieuwe video gestart.</div>';
       aiVideoPollTimer=setTimeout(()=>pollAIVideo(operation),10000);return;
     }
     clearAIVideoPolling();

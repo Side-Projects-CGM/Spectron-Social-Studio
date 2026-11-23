@@ -2574,7 +2574,7 @@ function setAdGenerationState(generating, mode='ad'){
     </div>`;
     if(typeof window!=='undefined' && window.studioProgress){
       resultsArea.innerHTML='';
-      window.studioProgress.start(mode);
+      if(mode!=='restore')window.studioProgress.start(mode);
     }
   }else{
     if(typeof window!=='undefined') window.studioProgress?.stop();
@@ -2895,7 +2895,7 @@ showWorkflowChooser();
 </script>
 <script src="animated-video.js?v=dutch-copy-1"></script>
 <script src="ai-video-references.js?v=reference-10mib-1"></script>
-<script src="ai-video.js?v=reference-10mib-1"></script>
+<script src="ai-video.js?v=previous-video-preview-1"></script>
 <script src="ai-background.js?v=dutch-copy-4"></script>
 <script src="studio-library.js?v=dutch-word-wrap-1"></script>
 

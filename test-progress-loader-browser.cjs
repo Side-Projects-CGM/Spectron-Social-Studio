@@ -32,7 +32,7 @@ test('shared circular loader: regular/demo, 1280/390, timing, media-ready gate, 
   try{
     for(const mode of ['regular','demo'])for(const width of [1280,390])await t.test(`${mode} ${width}px`,async()=>{
       const context=await browser.newContext({viewport:{width,height:900}});
-      let adMode='success',statusMode='pending',downloadMode='hold',adRoute,downloadRoute,videoStarts=0,adStarts=0;
+      let adMode='success',statusMode='pending',downloadMode='hold',adRoute,downloadRoute,videoStarts=0,adStarts=0,statusReads=0,downloadReads=0;
       const errors=[],consoleErrors=[],badResponses=[];
       await context.route('**/*',async route=>{
         const req=route.request(),url=new URL(req.url());
@@ -47,8 +47,9 @@ test('shared circular loader: regular/demo, 1280/390, timing, media-ready gate, 
           return json(adMode==='error'?{candidates:[]}:adBody);
         }
         if(action==='video'){videoStarts++;return json({operation:`interactions/mock_${videoStarts}`});}
-        if(action==='status')return json(statusMode==='pending'?{state:'pending'}:statusMode==='failed'?{state:'failed',message:'Deze testvideo is mislukt.'}:{state:'completed',outputAvailable:true});
+        if(action==='status'){statusReads++;return json(statusMode==='pending'?{state:'pending'}:statusMode==='failed'?{state:'failed',message:'Deze testvideo is mislukt.'}:{state:'completed',outputAvailable:true});}
         if(action==='download'){
+          downloadReads++;
           if(downloadMode==='hold'){downloadRoute=route;return;}
           return route.fulfill({status:200,contentType:'video/mp4',body:downloadMode==='bad'?Buffer.from('not a video'):mp4});
         }
@@ -121,6 +122,53 @@ test('shared circular loader: regular/demo, 1280/390, timing, media-ready gate, 
         await downloadRoute.fulfill({status:200,contentType:'video/mp4',body:mp4});
         await studio.locator('#aiVideoPreview').waitFor({state:'visible'});
         assert.ok(await studio.locator('#aiVideoPreview').evaluate(v=>v.readyState>=2));assert.equal(await studio.locator('.studio-progress-overlay').count(),0);assert.equal(videoStarts,1);await screenshot('video-ready');
+        // Cees's Previous button must reveal the already decoded node, not restart progress or fetch again.
+        const readsBeforeCache={statusReads,downloadReads};
+        await studio.evaluate(()=>{window.previousReadyVideo=document.getElementById('aiVideoPreview');window.previousReadyVideo.pause();window.previousReadyVideo.currentTime=.1;});
+        const picker=page.waitForEvent('filechooser');await studio.locator('#aiVideoReferenceUpload1').click();
+        await(await picker).setFiles({name:'another-reference.png',mimeType:'image/png',buffer:Buffer.from(data,'base64')});
+        await studio.waitForFunction(()=>document.querySelectorAll('#aiVideoReferenceList img').length===2&&!document.getElementById('aiVideoReferenceInput').disabled);
+        assert.equal(await studio.locator('#workspaceImagePreview').isVisible(),true);
+        await studio.waitForFunction(()=>window.previousReadyVideo.readyState>=2&&!window.previousReadyVideo.seeking);
+        for(let i=0;i<3;i++)await studio.locator('#aiVideoPreviousButton').click();
+        assert.equal(await studio.evaluate(()=>document.getElementById('aiVideoPreview')===window.previousReadyVideo),true);
+        assert.ok(Math.abs(await studio.locator('#aiVideoPreview').evaluate(video=>video.currentTime)-.1)<.02);
+        assert.deepEqual({statusReads,downloadReads},readsBeforeCache);assert.equal(videoStarts,1);
+        assert.equal(await studio.locator('.studio-progress-overlay').count(),0);assert.equal(await studio.locator('#aiVideoPreview').isVisible(),true);
+        await screenshot('previous-cached');
+        // Refresh loses the Blob cache, but only reads the same operation and shows restore wording, never percentages.
+        statusMode='pending';downloadMode='hold';
+        await page.reload();
+        if(mode==='demo')studio=await(await page.locator('iframe').elementHandle()).contentFrame();else studio=page.mainFrame();
+        await studio.waitForLoadState('load');
+        assert.deepEqual({statusReads,downloadReads},readsBeforeCache,'Refresh must not poll/download automatically');
+        if(mode==='demo'){await studio.locator('#brand').fill('Testklant');await studio.locator('#brand').dispatchEvent('change');}
+        else await studio.locator('#brand').selectOption('Bluey');
+        await studio.locator('#uploadInput').setInputFiles({name:'refresh-reference.png',mimeType:'image/png',buffer:Buffer.from(data,'base64')});
+        await studio.waitForFunction(()=>selectedImage?.startsWith('data:'));await studio.locator('#chooseVideo').click();
+        await studio.locator('#aiVideoPrompt').fill('Lokale mock video. Geen API-kosten.');
+        await studio.locator('#aiVideoPreviousButton').click();
+        await studio.waitForFunction(()=>document.getElementById('outputMeta').textContent.includes('vorige video wordt nog verwerkt'));
+        assert.equal(videoStarts,1);assert.equal(await studio.locator('.studio-progress-overlay').count(),0);
+        assert.match(await studio.locator('#resultsArea').textContent(),/geen nieuwe video gestart/);
+        assert.doesNotMatch(await studio.locator('#resultsArea').textContent(),/\d+%|Geschatte voortgang/);
+        await screenshot('previous-pending');
+        statusMode='completed';await page.clock.fastForward(10000);
+        await studio.locator('#aiVideoPreview').waitFor({state:'attached'});
+        assert.equal(await studio.locator('#outputMeta').textContent(),'AI-video — vorige video laden');
+        assert.equal(await studio.locator('#generateAIVideoBtn').textContent(),'Vorige video laden…');
+        assert.equal(await studio.locator('.studio-progress-overlay').count(),0);
+        assert.equal(await studio.locator('#aiVideoPreview').isVisible(),false);
+        assert.equal(await studio.locator('#aiVideoRestoreStatus').isVisible(),true);
+        assert.match(await studio.locator('#aiVideoRestoreStatus').textContent(),/Vorige video laden.*geen nieuwe video gestart/);
+        const statusPosition=await studio.locator('#aiVideoRestoreStatus').evaluate(el=>{const box=el.getBoundingClientRect();return {top:box.top,bottom:box.bottom,viewport:innerHeight};});
+        assert.ok(statusPosition.top>=0&&statusPosition.bottom<=statusPosition.viewport,`Restore message must be in view: ${JSON.stringify(statusPosition)}`);
+        await screenshot('previous-loading');
+        await downloadRoute.fulfill({status:200,contentType:'video/mp4',body:mp4});await studio.locator('#aiVideoPreview').waitFor({state:'visible'});
+        assert.ok(await studio.locator('#aiVideoPreview').evaluate(video=>video.readyState>=2));assert.equal(videoStarts,1);
+        assert.equal(await studio.locator('#aiVideoRestoreStatus').count(),0);
+        assert.equal(statusReads,readsBeforeCache.statusReads+2);assert.equal(downloadReads,readsBeforeCache.downloadReads+1);
+        await screenshot('previous-ready');
         // A provider failure removes the loader and never retries generation.
         statusMode='failed';await studio.locator('#generateAIVideoBtn').click();await studio.locator('#aiVideoConfirmButton').click();await studio.waitForFunction(()=>aiVideoOperation==='interactions/mock_2');await page.clock.fastForward(10000);
         await studio.locator('#resultsArea [role="alert"]').waitFor();assert.match(await studio.locator('#resultsArea').innerText(),/mislukt/);assert.equal(await studio.locator('.studio-progress-overlay').count(),0);assert.equal(videoStarts,2);await screenshot('video-error');
@@ -129,7 +177,7 @@ test('shared circular loader: regular/demo, 1280/390, timing, media-ready gate, 
         await studio.locator('#aiVideoPreviewError').waitFor({state:'visible'});assert.equal(await studio.locator('.studio-progress-overlay').count(),0);assert.equal(videoStarts,3);
         assert.deepEqual(errors,[]);assert.deepEqual(consoleErrors,[]);assert.deepEqual(badResponses,[]);
         assert.equal(await studio.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-        report.push({mode,width,status:'PASS',adElapsedMs:elapsed,videoStarts,errors,consoleErrors,badResponses,appearance});
+        report.push({mode,width,status:'PASS',adElapsedMs:elapsed,videoStarts,statusReads,downloadReads,previousPreview:'cached reuse + refresh recovery without generation progress',errors,consoleErrors,badResponses,appearance});
       }catch(error){await screenshot('FAIL');report.push({mode,width,status:'FAIL',message:error.message,errors,consoleErrors,badResponses});throw error;}
       finally{await context.close();}
     });

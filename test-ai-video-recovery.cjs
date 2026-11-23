@@ -13,17 +13,17 @@ function browser(storage = new Map()) {
     aiVideoAspect:{value:'9:16'}, aiVideoPrompt:{value:'private prompt'}, aiVideoNoImage:{},
     generateAIVideoBtn:{}, outputMeta:{}, resultsArea:{}, aiVideoAgain:{}, aiVideoPreviousButton:{hidden:true},
     workspaceOutput:{hidden:true}, workspacePlaceholder:{hidden:false}, workspaceImagePreview:{hidden:false},
-    aiVideoPreview:{readyState:2, dataset:{}, addEventListener(){}, load(){this.loaded = true;}},
+    aiVideoPreview:{readyState:2, dataset:{}, addEventListener(){}, load(){this.loaded = true;this.loads=(this.loads||0)+1;this.error=null;}},
     aiVideoPreviewError:{hidden:true}, aiVideoConfirmModal:{hidden:true},
     aiVideoConfirmButton:{focus(){}}, aiVideoCancelButton:{}, aiVideoRetryWarning:{}
   };
-  const calls = [], warnings = [], timers = [], revoked = [];
+  const calls = [], warnings = [], timers = [], revoked = [], loadingStates=[];
   const window = {addEventListener(){}, sessionStorage:{
     getItem:key => storage.get(key) || null, setItem:(key, value) => storage.set(key, value)
   }};
   const context = vm.createContext({
     window, document:{getElementById:id => elements[id]}, selectedImage:'private image',
-    setAdGenerationState(){}, escapeHtml:String, Date,
+    setAdGenerationState(loading,mode){loadingStates.push({loading,mode});}, escapeHtml:String, Date,
     console:{warn:message => warnings.push(message), info(){}},
     URL:{createObjectURL:() => 'blob:mock-preview', revokeObjectURL:url => revoked.push(url)},
     setTimeout:fn => {timers.push(fn); return timers.length;}, clearTimeout(){},
@@ -32,7 +32,7 @@ function browser(storage = new Map()) {
       return state.respond(url, options);
     }
   });
-  const state = {context, elements, calls, warnings, timers, storage, revoked,
+  const state = {context, elements, calls, warnings, timers, storage, revoked, loadingStates,
     respond:async () => {throw new Error('Unexpected mocked request');}};
   vm.runInContext(source, context);
   context.normalizeAIVideoImage = async () => ({mimeType:'image/png', data:'YWJj'});
@@ -138,7 +138,10 @@ test('refresh stays quiet; previous-video action checks the ID without image or 
   await state.context.openPreviousAIVideo();
   assert.equal(starts(state), 0);
   assert.match(state.calls[0].url, /operation=interactions%2Fmock-recovery$/);
-  assert.match(state.elements.outputMeta.textContent, /in behandeling/);
+  assert.match(state.elements.outputMeta.textContent, /vorige video wordt nog verwerkt/);
+  assert.deepEqual(state.loadingStates,[{loading:true,mode:'restore'}]);
+  assert.match(state.elements.resultsArea.innerHTML,/geen nieuwe video gestart/);
+  assert.doesNotMatch(state.elements.resultsArea.innerHTML,/geschatte|gegenereerd|\d+%/);
 });
 
 test('poll errors and monitoring timeout retain ID and allow GET-only recovery', async () => {
@@ -224,6 +227,66 @@ test('completed recovery downloads MP4 to Blob preview; download/browser errors 
   await state.context.resumeAIVideo();
   assert.deepEqual(state.revoked, ['blob:mock-preview']);
   assert.equal(starts(state), 0);
+});
+
+function cacheablePreview(state){
+  const result={id:'ready-preview'};
+  state.elements.resultsArea.firstElementChild=result;
+  state.elements.resultsArea.contains=node=>state.elements.resultsArea.firstElementChild===node;
+  state.elements.resultsArea.replaceChildren=node=>{state.elements.resultsArea.firstElementChild=node;};
+  state.respond=url=>url.includes('veo-video-status')?json({state:'completed',outputAvailable:true}):new Response('mock-mp4',{headers:{'Content-Type':'video/mp4'}});
+  return result;
+}
+
+test('previous button reveals the same ready preview repeatedly without network, progress or resetting playback',async()=>{
+  const state=browser();recover(state);const result=cacheablePreview(state);
+  await state.context.resumeAIVideo();
+  const calls=state.calls.length,loading=state.loadingStates.length;
+  state.elements.aiVideoPreview.currentTime=3.5;
+  state.elements.workspaceOutput.hidden=true;state.elements.workspaceImagePreview.hidden=false;
+  // The workflow cache can detach the old result; Previous must reattach the same node.
+  state.elements.resultsArea.firstElementChild=null;
+  for(let i=0;i<3;i++)await state.context.openPreviousAIVideo();
+  assert.equal(state.calls.length,calls);assert.equal(state.loadingStates.length,loading);
+  assert.equal(state.elements.resultsArea.firstElementChild,result);
+  assert.equal(state.elements.workspaceOutput.hidden,false);assert.equal(state.elements.workspaceImagePreview.hidden,true);
+  assert.equal(state.elements.aiVideoPreview.currentTime,3.5);assert.equal(state.elements.aiVideoPreview.loads,1);
+  assert.equal(state.revoked.length,0);assert.equal(starts(state),0);
+});
+
+test('wrong-operation and broken-source previews never bypass recovery; explicit reload still checks/downloads',async()=>{
+  for(const mode of ['operation','source','reload']){
+    const state=browser();recover(state);cacheablePreview(state);await state.context.resumeAIVideo();
+    const count=state.calls.length;
+    if(mode==='operation')vm.runInContext("aiVideoOperation='interactions/other-video'",state.context);
+    if(mode==='source')state.elements.aiVideoPreview.src='blob:unrelated';
+    if(mode==='reload')await state.context.resumeAIVideo();else await state.context.openPreviousAIVideo();
+    assert.equal(state.calls.length,count+2);assert.equal(starts(state),0);
+    assert.equal(state.loadingStates.at(-2).mode,'restore');
+    if(mode==='operation')assert.match(state.calls[count].url,/other-video/);
+  }
+});
+
+test('after refresh the previous ID is read again without confirmation or generation progress',async()=>{
+  const original=browser();recover(original);cacheablePreview(original);await original.context.resumeAIVideo();
+  const refreshed=browser(original.storage);refreshed.context.selectedImage=null;
+  refreshed.context.restoreAIVideoRecovery();cacheablePreview(refreshed);
+  await refreshed.context.openPreviousAIVideo();
+  assert.equal(refreshed.calls.length,2);assert.equal(starts(refreshed),0);
+  assert.equal(refreshed.elements.aiVideoConfirmModal.hidden,true);
+  assert.equal(refreshed.loadingStates[0].mode,'restore');
+});
+
+test('a media error during the ready-frame hold is not cached or relabelled as a playable success',async()=>{
+  const state=browser();recover(state);cacheablePreview(state);
+  state.context.window.studioProgress={stop(){},complete:async()=>{state.elements.aiVideoPreview.error={code:4};return true;}};
+  state.context.setAIVideoLoading(true);
+  await state.context.showAIVideoPreview(OPERATION);
+  assert.match(state.elements.outputMeta.textContent,/voorbeeld niet beschikbaar/);
+  const count=state.calls.length;
+  await state.context.openPreviousAIVideo();
+  assert.equal(state.calls.length,count+2);assert.equal(starts(state),0);
+  assert.match(state.elements.outputMeta.textContent,/voltooid$/);
 });
 
 test('lost start response stores only an uncertainty marker; refresh never resubmits', async () => {
