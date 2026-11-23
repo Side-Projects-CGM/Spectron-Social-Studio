@@ -2,7 +2,7 @@
 // Three is a provisional application cap, not a documented Omni 1.1 maximum.
 (() => {
   const MAX_IMAGES = 3;
-  const MAX_BYTES = 4 * 1024 * 1024;
+  const MAX_BYTES = 10 * 1024 * 1024;
   const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   let references = [null, null, null];
   let selectedSource = null;
@@ -140,7 +140,7 @@
       const blob = await response.blob();
       if (!TYPES.includes(blob.type) || !blob.size) throw new Error('Gebruik JPEG-, PNG- of WebP-foto’s.');
       total += blob.size;
-      if (total > MAX_BYTES) throw new Error('De referentiefoto’s mogen samen maximaal 4 MiB zijn.');
+      if (total > MAX_BYTES) throw new Error('De referentiefoto’s mogen samen maximaal 10 MiB zijn.');
       const bitmap = await createImageBitmap(blob).catch(() => null);
       if (!bitmap) throw new Error('Een bestand is geen leesbare foto.');
       bitmap.close();
@@ -171,7 +171,7 @@
       return;
     }
     if (file.size > MAX_BYTES) {
-      showError('De referentiefoto’s mogen samen maximaal 4 MiB zijn.');
+      showError('De referentiefoto’s mogen samen maximaal 10 MiB zijn.');
       return;
     }
     reading = true;

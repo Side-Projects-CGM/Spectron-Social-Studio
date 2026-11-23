@@ -93,19 +93,19 @@ async function run(browser, baseUrl, {demo=false, artifacts}={}) {
         [{name:'not-image.txt',mimeType:'text/plain',buffer:Buffer.from('text')},/JPEG/],
         [{name:'empty.png',mimeType:'image/png',buffer:Buffer.alloc(0)},/niet-lege/],
         [{name:'fake.png',mimeType:'image/png',buffer:Buffer.from('not a real PNG')},/leesbare/],
-        [{name:'large.png',mimeType:'image/png',buffer:Buffer.alloc(4*1024*1024+1)},/4 MiB/]
+        [{name:'large.png',mimeType:'image/png',buffer:Buffer.alloc(10*1024*1024+1)},/10 MiB/]
       ];
       for(const [value,message] of invalid){
         await upload(2,value);await studio.locator('#aiVideoReferenceError').waitFor();
         assert.match(await studio.locator('#aiVideoReferenceError').textContent(),message);
         await sources([photos[0],photos[2]]);
       }
-      const padded=Buffer.alloc(Math.ceil(2.1*1024*1024));file(photos[1]).buffer.copy(padded);
+      const padded=Buffer.alloc(Math.ceil(5.1*1024*1024));file(photos[1]).buffer.copy(padded);
       await upload(2,{name:'padded.png',mimeType:'image/png',buffer:padded});
       await studio.waitForFunction(()=>document.querySelector('[data-slot="2"] img')&&!document.getElementById('aiVideoReferenceInput').disabled);
       const before=await studio.locator('[data-slot="2"] img').getAttribute('src');
       await upload(3,{name:'over-combined-cap.png',mimeType:'image/png',buffer:padded});
-      await studio.locator('#aiVideoReferenceError').waitFor();assert.match(await studio.locator('#aiVideoReferenceError').textContent(),/4 MiB/);
+      await studio.locator('#aiVideoReferenceError').waitFor();assert.match(await studio.locator('#aiVideoReferenceError').textContent(),/10 MiB/);
       assert.equal(await studio.locator('[data-slot="2"] img').getAttribute('src'),before);
       assert.equal(await studio.locator('[data-slot="3"] img').getAttribute('src'),photos[2]);
       await upload(2,file(photos[1]));await sources(photos.slice(0,3));
@@ -160,7 +160,7 @@ async function run(browser, baseUrl, {demo=false, artifacts}={}) {
       }
       assert.deepEqual(errors,[]);assert.deepEqual(badResponses,[]);
       reports.push({mode:demo?'demo':'regular',width,status:'PASS',requests:requests.length,textRequests,errors,badResponses});
-      console.log(`${demo?'demo':'regular'} ${width}px: PASS three fixed slots, keyboard upload, full canvas previews, replace/remove, 4 MiB validation, ad isolation/cache, paid confirmation, request bytes, decoding race${demo?', reset':''}; all APIs mocked`);
+      console.log(`${demo?'demo':'regular'} ${width}px: PASS three fixed slots, keyboard upload, full canvas previews, replace/remove, 10 MiB validation, ad isolation/cache, paid confirmation, request bytes, decoding race${demo?', reset':''}; all APIs mocked`);
     }catch(error){await screenshot('FAIL');throw error;}
     finally{await context.close();}
   }

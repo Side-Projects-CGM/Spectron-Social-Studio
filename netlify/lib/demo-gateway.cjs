@@ -1,10 +1,11 @@
 const {DemoError} = require('./demo-state.cjs');
 const {DEMO_REQUEST} = require('./demo-context.cjs');
+const {UPLOAD_OWNER,UPLOAD_SERVICE,UploadError,uploadRequest} = require('./video-reference-uploads.cjs');
 const HEADERS = {'Content-Type':'application/json', 'Cache-Control':'no-store, private', 'X-Content-Type-Options':'nosniff'};
 function json(status, body, headers = {}) { return new Response(JSON.stringify(body), {status,headers:{...HEADERS,...headers}}); }
 const GENERATIONS = {text:'text',image:'image',video:'video'};
 
-function createDemoGateway({stateFactory, handlers, videoEnabled = () => true}) {
+function createDemoGateway({stateFactory, handlers, uploadFactory=null, videoEnabled = () => true}) {
   return async function gateway(request) {
     try {
       if (request.method !== 'POST') return json(405,{error:'Methode niet toegestaan.'},{Allow:'POST'});
@@ -29,8 +30,22 @@ function createDemoGateway({stateFactory, handlers, videoEnabled = () => true}) 
       const auth = state.authenticate(event);
       if (input.action === 'create') return json(201,{workspace:await state.createWorkspace(auth)});
       const id = input.workspace;
-      if (input.action === 'reset') return json(200,await state.reset(auth,id));
+      event[UPLOAD_OWNER]={owner:auth.owner,workspace:id};
+      if (input.action === 'reset') {
+        const result=await state.reset(auth,id);
+        if(uploadFactory)await uploadFactory(event).removeWorkspace();
+        return json(200,result);
+      }
       await state.workspace(auth,id);
+      if(input.action==='references'){
+        if(!videoEnabled())return json(403,{error:'Betaalde videogeneratie is uitgeschakeld voor deze demo.'});
+        if(!uploadFactory)return json(503,{error:'Foto-uploads zijn niet beschikbaar.'});
+        const uploads=uploadFactory(event);event[UPLOAD_SERVICE]=uploads;
+        event.body=JSON.stringify(input.input);
+        const result=await uploadRequest(event);
+        try{await state.workspace(auth,id);}catch(error){await uploads.removeWorkspace();throw error;}
+        return response(result);
+      }
       if (input.action === 'check') return json(200,{active:true});
       if (input.action === 'status' || input.action === 'download') {
         await state.authorizeOperation(auth,id,input.operation);
@@ -49,6 +64,7 @@ function createDemoGateway({stateFactory, handlers, videoEnabled = () => true}) 
       event.body = JSON.stringify(input.input);
       if (event.body.length > 28 * 1024 * 1024) return json(413,{error:'Het verzoek is te groot.'});
       if (input.action === 'text' && (typeof input.input.prompt !== 'string' || input.input.prompt.length > 12000)) return json(400,{error:'Ongeldige tekstbriefing.'});
+      if(input.action==='video'&&input.input.upload&&uploadFactory)event[UPLOAD_SERVICE]=uploadFactory(event);
       const ticket = await state.begin(auth,id,GENERATIONS[input.action]);
       let result;
       try { result = await handlers[input.action](event); }
@@ -60,12 +76,15 @@ function createDemoGateway({stateFactory, handlers, videoEnabled = () => true}) 
       if (input.action === 'video' && result.statusCode === 202) {
         try { operation = JSON.parse(result.body).operation; } catch { /* Treat as unknown. */ }
       }
-      // Only explicit input rejection proves a paid start could not have succeeded.
-      await state.finish(auth,id,ticket,{operation, definitelyFailed:result.statusCode === 400 || result.statusCode === 413});
+      // Upload resolution happens before Google. Its explicit rejection is not an unknown paid start.
+      let uploadRejected=false;
+      if(input.action==='video'){try{uploadRejected=JSON.parse(result.body).category==='invalid-upload';}catch{ /* No reliable rejection marker. */ }}
+      // No quota refund; only clear the active-video lock when a start definitely did not happen.
+      await state.finish(auth,id,ticket,{operation, definitelyFailed:result.statusCode === 400 || result.statusCode === 413 || uploadRejected});
       return response(result);
     } catch (error) {
-      return json(error instanceof DemoError ? error.status : 503,
-        {error:error instanceof DemoError ? error.message : 'De demoaanvraag kon niet veilig worden afgerond. Probeer de bestaande aanvraag te controleren.'});
+      return json(error instanceof DemoError||error instanceof UploadError ? error.status : 503,
+        {error:error instanceof DemoError||error instanceof UploadError ? error.message : 'De demoaanvraag kon niet veilig worden afgerond. Probeer de bestaande aanvraag te controleren.'});
     }
   };
 }

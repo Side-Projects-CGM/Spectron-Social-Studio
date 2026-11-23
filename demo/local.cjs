@@ -6,6 +6,7 @@ const {randomBytes, createHash} = require('node:crypto');
 const {createDemoState} = require('../netlify/lib/demo-state.cjs');
 const {createDemoGateway} = require('../netlify/lib/demo-gateway.cjs');
 const {build} = require('./build.cjs');
+const {createReferenceUploads,UPLOAD_OWNER}=require('../netlify/lib/video-reference-uploads.cjs');
 
 // Single-process, synchronous compare-and-swap. State disappears when this runner stops.
 // This is NOT a distributed lock or a substitute for production Blobs verification.
@@ -20,7 +21,8 @@ function localStore() {
       const etag = String(++version); records.set(key,{data:structuredClone(data),etag});
       return {modified:true,etag};
     },
-    async delete(key) { records.delete(key); }
+    async delete(key) { records.delete(key); },
+    async *list({prefix='' }={}) {yield {blobs:[...records.keys()].filter(key=>key.startsWith(prefix)).map(key=>({key}))};}
   };
 }
 function mockText(event) {
@@ -44,9 +46,11 @@ async function serve({live = false, port = 8891, password = process.env.DEMO_PRE
   const origin=`http://127.0.0.1:${port}`;
   if(live && !process.env.GEMINI_API_KEY)throw new Error('Live text/image mode requires a server-side GEMINI_API_KEY.');
   await build();
-  const state=createDemoState({store:localStore(),password,secret:randomBytes(32).toString('hex'),origin,
+  const store=localStore();
+  const state=createDemoState({store,password,secret:randomBytes(32).toString('hex'),origin,
     removeInteraction:async()=>{throw new Error('Video is disabled in the local runner');}});
-  const gateway=createDemoGateway({stateFactory:()=>state,videoEnabled:()=>false,handlers:{
+  const gateway=createDemoGateway({stateFactory:()=>state,videoEnabled:()=>false,
+    uploadFactory:event=>createReferenceUploads({store,owner:event[UPLOAD_OWNER],environment:'local-demo'}),handlers:{
     text:live ? event=>require('../netlify/functions/generate.js').handler(event) : mockText,
     image:live ? event=>require('../netlify/functions/generate-ai-image.cjs').handler(event) : mockImage
   }});

@@ -1,6 +1,7 @@
 'use strict';
 const DEFAULT_AI_VIDEO_PROMPT="Maak een vrolijke, professionele reclamevideo van acht seconden voor sociale media. Het product uit de foto is de ster: behoud het exacte uiterlijk, de kleuren, het merk en de verhoudingen, en houd het de hele video duidelijk en scherp in beeld. Laat het product op een speelse, natuurlijke manier bewegen of gebruiken, met een vloeiende filmische camerabeweging. Voeg passende vrolijke achtergrondmuziek en geluidseffecten toe. Als er een persoon spreekt, spreekt die duidelijk Nederlands. Voeg geen tekst of logo's toe.";
-const MAX_VEO_IMAGE_BYTES=4*1024*1024;
+const MAX_VEO_IMAGE_BYTES=10*1024*1024;
+const AI_VIDEO_INLINE_BYTES=4*1024*1024;
 let aiVideoRunning=false,aiVideoPollTimer=0,aiVideoPollStarted=0,aiVideoUrl='',aiVideoPreviewUrl='';
 const AI_VIDEO_SERVER_ERROR='De videodienst gaf een onverwacht serverantwoord. Probeer het opnieuw of neem contact op met de ondersteuning.';
 const AI_VIDEO_RETRY_WARNING='De vorige videoaanvraag is mogelijk al gestart. Opnieuw starten kan een extra betaalde video opleveren.';
@@ -68,6 +69,11 @@ async function readAIVideoJSON(response,endpoint){
     throw new Error(AI_VIDEO_SERVER_ERROR);
   }
   if(!response.ok){
+    if(endpoint==='/.netlify/functions/video-reference-upload'||result.category==='invalid-upload'){
+      const messages={400:'Controleer de foto’s en probeer de upload opnieuw.',403:'De foto-upload is niet toegestaan voor deze sessie.',404:'De foto-upload is niet gevonden.',409:'De foto-upload is onvolledig of al gebruikt.',410:'De foto-upload is verlopen.',413:'De referentiefoto’s mogen samen maximaal 10 MiB zijn.',429:'Te veel foto-uploads. Probeer later opnieuw.'};
+      const error=new Error((messages[response.status]||'De foto-upload is onderbroken.')+' Er is geen nieuwe video gestart.');
+      error.noVideoStarted=true;throw error;
+    }
     const messages={400:'De videoaanvraag is ongeldig. Controleer je afbeelding en beschrijving.',401:'De videodienst kon zich niet aanmelden.',403:'De videodienst heeft geen toegang.',404:'De videodienst is niet gevonden. Neem contact op met de ondersteuning.',405:'De videodienst heeft deze aanvraagmethode geweigerd.',409:'De video is nog niet klaar.',422:'De videoaanvraag kon niet worden voltooid.',429:'De gebruikslimiet van Google is bereikt. Probeer het later opnieuw.',500:'De serverinstellingen van de videodienst zijn onjuist.',502:'De videodienst kon de aanvraag niet voltooien. Probeer het opnieuw of neem contact op met de ondersteuning.'};
     throw new Error(messages[response.status]||AI_VIDEO_SERVER_ERROR);
   }
@@ -99,7 +105,7 @@ async function normalizeAIVideoImage(targetRatio, source=selectedImage){
   try{blob=await response.blob();}catch{throw new Error('Het geselecteerde merkbeeld kon niet worden geladen.');}
   if(!['image/jpeg','image/png','image/webp'].includes(blob.type))throw new Error('AI-video ondersteunt merkbeelden in JPEG-, PNG- en WebP-formaat.');
   if(!blob.size)throw new Error('Het geselecteerde merkbeeld is leeg.');
-  if(blob.size>MAX_VEO_IMAGE_BYTES)throw new Error('De referentiefoto’s mogen samen maximaal 4 MiB zijn.');
+  if(blob.size>MAX_VEO_IMAGE_BYTES)throw new Error('De referentiefoto’s mogen samen maximaal 10 MiB zijn.');
   const bitmap=await createImageBitmap(blob).catch(()=>null);
   if(!bitmap)throw new Error('Het merkbeeld kon niet worden verwerkt. Selecteer een andere afbeelding.');
   bitmap.close?.();
@@ -107,6 +113,42 @@ async function normalizeAIVideoImage(targetRatio, source=selectedImage){
   const comma=dataUrl.indexOf(',');
   if(comma<0)throw new Error('Het geselecteerde merkbeeld heeft een ongeldig bestandsformaat.');
   return {mimeType:blob.type,data:dataUrl.slice(comma+1)};
+}
+async function referenceUploadAction(action, values={}, timeout=30000){
+  const endpoint='/.netlify/functions/video-reference-upload';
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(timeout),body:JSON.stringify({action,...values})});
+  return readAIVideoJSON(response,endpoint);
+}
+async function releaseReferenceUpload(reference){
+  try{await referenceUploadAction('delete',{reference},5000);}catch{ /* The server expiry sweep retries cleanup; never retry generation. */ }
+}
+async function uploadAIVideoReferences(references){
+  const files=await Promise.all(references.map(async image=>{
+    const response=await fetch(`data:${image.mimeType};base64,${image.data}`);
+    const bytes=new Uint8Array(await response.arrayBuffer());
+    const digest=await crypto.subtle.digest('SHA-256',bytes);
+    const sha256=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join('');
+    return {mimeType:image.mimeType,bytes,sha256};
+  }));
+  let reference;
+  try{
+    const result=await referenceUploadAction('create',{images:files.map(file=>({mimeType:file.mimeType,size:file.bytes.length,sha256:file.sha256}))});
+    reference=result.reference;
+    if(!reference||typeof reference.id!=='string'||!Number.isSafeInteger(reference.expiresAt)||typeof reference.token!=='string'||result.chunkBytes!==1024*1024)throw new Error('De foto-upload gaf een ongeldig antwoord.');
+    for(let image=0;image<files.length;image++){
+      const bytes=files[image].bytes;
+      for(let offset=0,part=0;offset<bytes.length;offset+=result.chunkBytes,part++){
+        const chunk=bytes.subarray(offset,offset+result.chunkBytes);
+        let binary='';for(let start=0;start<chunk.length;start+=32768)binary+=String.fromCharCode(...chunk.subarray(start,start+32768));
+        await referenceUploadAction('chunk',{reference,image,part,data:btoa(binary)});
+      }
+    }
+    return reference;
+  }catch(error){
+    if(reference)await releaseReferenceUpload(reference);
+    if(error instanceof TypeError||['TimeoutError','AbortError'].includes(error.name))throw new Error('De foto-upload is onderbroken. Er is geen nieuwe video gestart. Probeer opnieuw.');
+    throw error;
+  }
 }
 /** @param {boolean} loading */
 function setAIVideoLoading(loading){
@@ -272,20 +314,26 @@ async function generateAIVideo(newRequest=false){
   const confirmed=await requestAIVideoConfirmation();
   if(!confirmed||aiVideoRunning)return;
   clearAIVideoPolling();setAIVideoLoading(true);
-  let submitting=false;
+  let submitting=false,uploadReference=null;
   try{
     const ratio=aiVideoEl('aiVideoAspect').value;
     if(!['9:16','16:9'].includes(ratio))throw new Error('Kies staand 9:16 of liggend 16:9.');
     const sources=window.aiVideoReferences?.getSources()||[selectedImage];
     const references=await Promise.all(sources.map(source=>normalizeAIVideoImage(ratio,source)));
     const totalBytes=references.reduce((sum,image)=>sum+image.data.length*3/4-(image.data.endsWith('==')?2:image.data.endsWith('=')?1:0),0);
-    if(totalBytes>MAX_VEO_IMAGE_BYTES)throw new Error('De referentiefoto’s mogen samen maximaal 4 MiB zijn.');
+    if(totalBytes>MAX_VEO_IMAGE_BYTES)throw new Error('De referentiefoto’s mogen samen maximaal 10 MiB zijn.');
     const images=references.map(image=>`data:${image.mimeType};base64,${image.data}`);
     const prompt=aiVideoEl('aiVideoPrompt').value.trim();
     if(!prompt)throw new Error('Voer een beschrijving voor de AI-video in.');
+    let payload={images,prompt,aspectRatio:ratio};
+    if(totalBytes>AI_VIDEO_INLINE_BYTES){
+      aiVideoEl('outputMeta').textContent='AI-video — foto’s uploaden';
+      uploadReference=await uploadAIVideoReferences(references);
+      payload={upload:uploadReference,prompt,aspectRatio:ratio};
+    }
     aiVideoRequestedRatio=ratio;aiVideoOperation='';aiVideoMayHaveStarted=true;
     saveAIVideoRecovery();submitting=true;
-    const response=await fetch('/.netlify/functions/start-veo-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({images,prompt,aspectRatio:ratio})});
+    const response=await fetch('/.netlify/functions/start-veo-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const result=await readAIVideoJSON(response,'/.netlify/functions/start-veo-video');
     if(typeof result.operation!=='string'||!AI_VIDEO_OPERATION_PATTERN.test(result.operation))throw new Error(AI_VIDEO_SERVER_ERROR);
     aiVideoOperation=result.operation;saveAIVideoRecovery();
@@ -293,11 +341,12 @@ async function generateAIVideo(newRequest=false){
     aiVideoEl('outputMeta').textContent='AI-video — in behandeling';
     aiVideoPollTimer=setTimeout(()=>pollAIVideo(result.operation),10000);
   }catch(error){
+    if(error.noVideoStarted&&submitting){submitting=false;aiVideoMayHaveStarted=false;saveAIVideoRecovery();}
     setAIVideoLoading(false);
     const message=error instanceof TypeError?'De videodienst kon niet worden bereikt.':error.message||AI_VIDEO_SERVER_ERROR;
     if(submitting)showAIVideoRecovery(message+' Er is geen aanvraagnummer ontvangen; de uitkomst van de inzending is niet bevestigd. '+AI_VIDEO_RETRY_WARNING);
     else showAIVideoRecovery(message,'AI-video — controleer je invoer',false);
-  }
+  }finally{if(uploadReference)await releaseReferenceUpload(uploadReference);}
 }
 window.addEventListener('pagehide',()=>{clearAIVideoPolling();clearAIVideoUrl();});
 window.addEventListener('load',()=>{const p=aiVideoEl('aiVideoPrompt');if(p&&!p.value)p.value=DEFAULT_AI_VIDEO_PROMPT;updateVideoMode();restoreAIVideoRecovery();});

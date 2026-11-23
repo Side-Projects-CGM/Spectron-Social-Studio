@@ -1,6 +1,6 @@
 // App limits, not a claim about Omni 1.1's undocumented reference-image maximum.
 const MAX_REFERENCE_IMAGES = 3;
-const MAX_REFERENCE_BYTES = 4 * 1024 * 1024;
+const MAX_REFERENCE_BYTES = 10 * 1024 * 1024;
 const REFERENCE_INSTRUCTION = "Gebruik de foto('s) alleen als referentie voor het product. Maak een nieuwe scène; begin de video niet met de geüploade foto.";
 const DATA_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]*={0,2})$/;
 
@@ -20,7 +20,7 @@ function parseReferenceImages(input) {
   let totalBytes = 0;
   for (const source of sources) {
     if (typeof source !== 'string' || source.length > Math.ceil(MAX_REFERENCE_BYTES / 3) * 4 + 64) {
-      return {error:'De referentiefoto’s mogen samen maximaal 4 MiB zijn.'};
+      return {error:'De referentiefoto’s mogen samen maximaal 10 MiB zijn.'};
     }
     const match = source.match(DATA_URL);
     if (!match || !match[2] || match[2].length % 4 !== 0) {
@@ -28,7 +28,7 @@ function parseReferenceImages(input) {
     }
     const bytes = Buffer.from(match[2], 'base64');
     totalBytes += bytes.length;
-    if (totalBytes > MAX_REFERENCE_BYTES) return {error:'De referentiefoto’s mogen samen maximaal 4 MiB zijn.'};
+    if (totalBytes > MAX_REFERENCE_BYTES) return {error:'De referentiefoto’s mogen samen maximaal 10 MiB zijn.'};
     if (bytes.toString('base64') !== match[2] || !matchesImageType(bytes, match[1])) {
       return {error:'Het bestand is geen geldige JPEG-, PNG- of WebP-foto.'};
     }
