@@ -1426,7 +1426,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
 .error-box{background:var(--brand-white);border-color:var(--brand-error);color:var(--brand-error);}
 
 </style>
-<link rel="stylesheet" href="studio-design.css?v=product-references-1">
+<link rel="stylesheet" href="studio-design.css?v=video-image-boxes-1">
 <link rel="stylesheet" href="studio-progress.css">
 </head>
 <body>
@@ -1582,8 +1582,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
               <p class="video-reference-label">Referentiefoto's van je product</p>
               <p id="aiVideoReferenceCount" class="video-reference-help" aria-live="polite">0 van 3 referentiefoto's</p>
               <div id="aiVideoReferenceList" class="video-reference-list"></div>
-              <button type="button" class="upload-btn" id="aiVideoReferenceAdd">Referentiefoto's toevoegen</button>
-              <input type="file" id="aiVideoReferenceInput" accept="image/jpeg,image/png,image/webp" multiple hidden>
+              <input type="file" id="aiVideoReferenceInput" accept="image/jpeg,image/png,image/webp" hidden>
               <p class="video-reference-help">Maximaal 3 foto's van hetzelfde product, samen 4 MiB. De geselecteerde productfoto telt mee. De volledige foto's worden als referentie gebruikt, niet als beginbeeld.</p>
               <p id="aiVideoReferenceError" class="video-reference-error" role="alert" hidden></p>
             </div>
@@ -1612,7 +1611,7 @@ body,.masthead{background:var(--brand-white);color:var(--brand-dark-blue);}
         <h1>Kies een foto</h1>
 
       </div>
-      <div class="workspace-image-preview" id="workspaceImagePreview" hidden><img id="workspaceProductImage" alt="Geselecteerd productbeeld"></div>
+      <div class="workspace-image-preview" id="workspaceImagePreview" hidden><img id="workspaceProductImage" alt="Geselecteerd productbeeld"><div id="workspaceVideoImages" class="video-reference-canvas" role="group" aria-label="Referentiefoto's op het canvas" hidden></div></div>
     <div class="output" id="workspaceOutput" hidden>
       <div class="output-head">
         <h2 id="workspaceHeading">Gegenereerde inhoud</h2>
@@ -2303,6 +2302,10 @@ function syncWorkspaceImagePreview(restoring = false){
   const output = document.getElementById('workspaceOutput');
   const placeholder = document.getElementById('workspacePlaceholder');
   const state = activeStudioWorkflow ? studioWorkflowViewState[activeStudioWorkflow] : null;
+  if(typeof window!=='undefined'){
+    window.aiVideoReferences?.syncSelectedImage(selectedImage);
+    window.aiVideoReferences?.syncCanvas();
+  }
   if(restoring && state?.image === selectedImage && !state.preview && document.getElementById('resultsArea').firstChild){
     hideWorkspaceImagePreview();
     output.hidden = false;
@@ -2891,7 +2894,7 @@ renderImageGallery();
 showWorkflowChooser();
 </script>
 <script src="animated-video.js?v=dutch-copy-1"></script>
-<script src="ai-video-references.js"></script>
+<script src="ai-video-references.js?v=video-image-boxes-1"></script>
 <script src="ai-video.js?v=progress-loader-1"></script>
 <script src="ai-background.js?v=dutch-copy-4"></script>
 <script src="studio-library.js?v=dutch-word-wrap-1"></script>
