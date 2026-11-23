@@ -60,6 +60,8 @@ Choose your options and click **Genereer advertentie**. A shared blue circular l
 
 Video uses the same loader after paid confirmation, with explicitly estimated progress capped below 95%. It reaches 100% only after the MP4 has downloaded and the browser has decoded a frame. See [progress loader notes](docs/PROGRESS-LOADER.md) for styling variables and mocked tests.
 
+**Vorige video bekijken** immediately reuses a ready preview for the same request, without new network calls or resetting playback. If it must fetch the previous video (for example after refresh), it shows **Vorige video laden…**, not generation percentages. A still-pending previous request is identified as such; it is never resubmitted. See [previous-video recovery notes](docs/PREVIOUS-VIDEO-PREVIEW.md).
+
 Press **Ctrl+C** to stop. Restart the command after changing `.env`.
 
 See Netlify's [local development guide](https://docs.netlify.com/api-and-cli-guides/cli-guides/local-development/) for more details.

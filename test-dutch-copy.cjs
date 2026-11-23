@@ -32,7 +32,9 @@ test('video confirmation, recovery and pending state are Dutch without a generat
   assert.equal(elements.resultsArea.innerHTML, undefined);
   assert.equal(elements.aiVideoPreviousButton.hidden, false);
   await context.openPreviousAIVideo();
-  assert.equal(elements.outputMeta.textContent, 'AI-video — in behandeling');
+  assert.equal(elements.outputMeta.textContent, 'AI-video — vorige video wordt nog verwerkt');
+  assert.match(elements.resultsArea.innerHTML,/geen nieuwe video gestart/);
+  assert.doesNotMatch(elements.resultsArea.innerHTML,/\d+%|Geschatte voortgang/);
   assert.equal(reads, 1, 'Only the existing request status is read');
 });
 
