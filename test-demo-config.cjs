@@ -28,6 +28,13 @@ test('Netlify UI base=demo discovers nested config WITHOUT an explicit config ov
   assert.ok(result.config.headers.some(rule => rule.values['Cache-Control'] === 'no-store'));
 });
 
+test('private upload cleanup is scheduled in both sites without executing storage or provider calls', async () => {
+  for(const directory of ['netlify/functions','demo/functions']){
+    const cleanup=await import(pathToFileURL(path.join(ROOT,directory,'cleanup-video-references.mjs')).href);
+    assert.equal(typeof cleanup.default,'function');assert.equal(cleanup.config.schedule,'@hourly');
+  }
+});
+
 test('regular-site root base still resolves unchanged regular configuration', async () => {
   const result = await resolveConfig('.');
   assert.equal(path.resolve(result.configPath), path.join(ROOT,'netlify.toml'));

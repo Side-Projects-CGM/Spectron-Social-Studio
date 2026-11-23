@@ -2,9 +2,11 @@ const {createDemoState, openDemoStore} = require('../../netlify/lib/demo-state.c
 const {createProviderCleanup} = require('../../netlify/lib/demo-provider-cleanup.cjs');
 const {createDemoGateway} = require('../../netlify/lib/demo-gateway.cjs');
 
-// demo/netlify.toml deploys only this function. Legacy/test endpoints are not published.
+// Browser traffic uses this gateway; the other demo function only sweeps expired uploads.
+// Legacy/test generation endpoints are not published.
 exports.default = createDemoGateway({
   videoEnabled:() => process.env.DEMO_DISABLE_VIDEO !== 'true',
+  uploadFactory:event => require('../../netlify/lib/video-reference-uploads.cjs').uploadsForEvent(event),
   stateFactory:event => createDemoState({
     store:openDemoStore(event), password:process.env.DEMO_PRESENTER_PASSWORD,
     secret:process.env.DEMO_COOKIE_SECRET,

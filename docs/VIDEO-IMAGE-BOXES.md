@@ -2,7 +2,7 @@
 
 ## 1. Summary
 
-Video now has three fixed thumbnail slots and shows all available reference photos enlarged on the canvas. This implements Cees's image-box ticket; the separate 10 MiB request is not included.
+Video has three fixed thumbnail slots and shows all available reference photos enlarged on the canvas. This document records the original UI ticket and its 4 MiB validation. The later **10 MiB transport follow-up** is documented in [VIDEO-REFERENCE-UPLOADS.md](VIDEO-REFERENCE-UPLOADS.md); its current validation replaces the original cap below.
 
 ## 2. Walkthrough
 
@@ -57,7 +57,7 @@ For local review, open the already running mock preview at `http://127.0.0.1:889
 - Chrome width simulations are not physical-device/Safari/Firefox testing.
 - Real paid generation and hosted behaviour were not tested; approval is required for paid calls/deployment.
 - The pre-existing Blobs emulator TODO is unrelated and not fixed here.
-- Raising the cap to 10 MiB requires a separate request-size/transport assessment; this ticket deliberately stays at 4 MiB combined.
+- The later 10 MiB follow-up adds chunked temporary uploads; see the transport document for its separate implementation and hosting checks.
 
 ## 8. Stand-up script
 

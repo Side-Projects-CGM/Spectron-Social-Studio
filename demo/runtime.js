@@ -3,7 +3,7 @@
   if (!/^[a-f0-9-]{36}$/.test(workspace || '') || window.parent === window) throw new Error('Open de demo via de presenterpagina.');
   window.demoStoragePrefix = `studio-demo:${workspace}:`;
   const originalFetch = window.fetch.bind(window);
-  const actions = {'generate':'text','generate-ai-image':'image','start-veo-video':'video','veo-video-status':'status','download-veo-video':'download'};
+  const actions = {'video-reference-upload':'references','generate':'text','generate-ai-image':'image','start-veo-video':'video','veo-video-status':'status','download-veo-video':'download'};
   window.fetch = async (input, options = {}) => {
     const url = new URL(typeof input === 'string' ? input : input.url,location.href);
     if(url.origin !== location.origin || !url.pathname.startsWith('/.netlify/functions/')) return originalFetch(input,options);

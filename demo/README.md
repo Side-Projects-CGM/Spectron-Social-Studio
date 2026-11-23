@@ -30,6 +30,18 @@ The runner builds the shared Studio automatically and binds to loopback only.
 
 Stop with Ctrl+C **after resetting**. Browser libraries persist until reset. The local session registry and quotas are in memory: stopping/restarting this local runner resets its counters and invalidates login. This is a local test harness, NOT evidence that production storage concurrency works. It is never included in the published static bundle or imported by the deployed gateway.
 
+## Local 10 MiB transport preview (mock only)
+
+For full video-upload transport testing without Google or real Blobs storage:
+
+```powershell
+node test-video-10mib-browser.cjs --serve
+```
+
+Open `http://127.0.0.1:8893/demo/` (regular: `/`). This standalone loopback-only harness auto-signs into a mock presenter session and uses memory storage and a mocked Google start. No real credentials are entered, changed or loaded from `.env`. Use images totaling at most 10 MiB, then confirm generation to exercise the chunk requests. Stop this harness with Ctrl+C. It does not replace deployed auth or production storage.
+
+See [upload transport notes](../docs/VIDEO-REFERENCE-UPLOADS.md) for expiry, cleanup, hosting acceptance and potential Netlify resource usage after deployment.
+
 ## Optional real text and image generation (costs money)
 
 No paid calls are made by the agent. To manually enable text/image only, stop the mock runner, then run:
@@ -53,6 +65,7 @@ Regression check: `node --test test-demo-scroll-browser.cjs`. It checks 1280×65
 ```powershell
 node demo/build.cjs
 node --test --test-concurrency=1 test-demo-*.cjs
+node --test test-video-reference-uploads.cjs test-video-upload-generation.cjs test-video-10mib-browser.cjs
 npm run test:usage
 ```
 
@@ -95,6 +108,6 @@ Required server-side settings, configured only after approval:
 - `GEMINI_API_KEY`: text/image key; video supports the existing key alias.
 - `DEMO_DISABLE_VIDEO=true`: enforce no video starts during the initial review.
 
-Only `demo/functions/demo-api.cjs` is deployed. Legacy/test generation endpoints are not published. Static assets come only from `demo-dist`; preset brand media is excluded. Never publish the repository root. Netlify site linking, environment configuration, commit/push and preview deployment require approval. Never use `--prod`.
+The browser uses only `demo/functions/demo-api.cjs`; `demo/functions/cleanup-video-references.mjs` is an hourly scheduled cleanup, not a public HTTP endpoint. Legacy/test generation endpoints are not published. Static assets come only from `demo-dist`; preset brand media is excluded. Never publish the repository root. Netlify site linking, environment configuration, commit/push and preview deployment require approval. Never use `--prod`.
 
 Before any real generation on a preview, verify the distributed quota/session conditional writes with mocked provider handlers as described in `BLOBS-DIAGNOSIS.md`.

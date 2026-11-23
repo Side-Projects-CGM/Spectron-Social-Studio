@@ -302,24 +302,28 @@ not silently combined. Reference controls remain locked during video generation.
 
 `ai-video-references.js` owns the fixed slots and canvas, while
 `spectron-social-studio.html` synchronizes them when the main image/workflow changes.
-`studio-design.css` controls the boxes and large-preview layout. The backend,
-model, prompt, paid confirmation and loader are unchanged by this UI ticket.
+`studio-design.css` controls the boxes and large-preview layout. The follow-up
+10 MiB transport change below leaves the model, prompt, paid confirmation and loader unchanged.
 
 Run `node --test test-video-image-boxes-browser.cjs` for mocked regular/demo checks
 at 1280px and 390px, including upload/replace/remove, file/combined-size validation,
 ad isolation, cancellation, outgoing original bytes, stale-upload protection and
 demo reset. Screenshots/report: ignored `artifacts/video-image-boxes/`.
-The **10 MiB request is a separate ticket**; this change keeps the existing 4 MiB cap.
-See [the walkthrough and review notes](docs/VIDEO-IMAGE-BOXES.md).
+The combined limit is now **10 MiB**, including the selected image. Selections
+up to 4 MiB keep the existing inline path; larger selections use 1 MiB temporary
+upload chunks after confirmation, then a small video-start request. This avoids
+Netlify's 6 MB buffered request limit without recompressing the original photos.
+See [UI notes](docs/VIDEO-IMAGE-BOXES.md) and [10 MiB transport, privacy and test notes](docs/VIDEO-REFERENCE-UPLOADS.md).
 
-- **Provisional app cap:** 1–3 images, JPEG/PNG/WebP, 4 MiB combined original bytes.
-  This keeps the base64 JSON request below the function request-size budget.
+- **Provisional app cap:** 1–3 images, JPEG/PNG/WebP, 10 MiB combined original bytes.
+  Each large-upload request stays below 2 MiB of JSON; whole images are reassembled server-side.
 - Browser checks decoded readability and sends complete files without cropping,
   stretching, resizing or re-encoding. Output orientation only controls the video.
 - Server checks count, MIME, canonical base64, file signatures and combined size.
   Signature validation is not a full image decoder or malware scanner.
-- The server accepts the existing single `image` field for older clients, as well
-  as the new `images` array. Both paths now use reference guidance.
+- The server accepts legacy inline `image`/`images` fields and the new opaque
+  `upload` reference. Clients must use the chunk path above 4 MiB to fit the host's
+  request limit. All paths use the same reference guidance.
 - The editable default prompt is unchanged. The server appends exactly:
   `Gebruik de foto('s) alleen als referentie voor het product. Maak een nieuwe scène; begin de video niet met de geüploade foto.`
 - The API call omits `generation_config.video_config.task`. Google recommends
@@ -332,9 +336,14 @@ explicitly gives **six references for 1.2**, but does not clearly state a separa
 maximum**. Keep this cap until separately validated; do not automatically raise
 it when 1.1 routes to 1.2 on **3 December 2026**.
 
-Keys remain server-side. References are kept in browser memory, not copied to
-session recovery storage, logs or usage records. Google's interaction storage
-still receives the submitted images. Model behaviour (including not reusing the
+Keys remain server-side. Upload capabilities and images are never copied to
+session recovery storage, logs or usage records. For selections above 4 MiB,
+originals temporarily enter the private `studio-video-reference-uploads` Blobs
+store. Normal completion/cancellation and demo reset remove image bytes; uploads
+become unusable after one hour. Hourly published-deploy cleanup and bounded
+cleanup on subsequent uploads handle expired/abandoned data. Preview schedules
+are not automatic; see the transport notes for retention limits. Google's
+interaction storage still receives the submitted images. Model behaviour (including not reusing the
 photo as the opening frame) needs an explicitly approved real generation test;
 mocked payload tests cannot guarantee visual output.
 
